@@ -1,0 +1,508 @@
+@model SmartRoomFinder.Models.ViewModels.RoomCreateViewModel
+
+@{
+    ViewData["Title"] = "Đăng Tin Phòng Trọ Mới";
+}
+
+<style>
+    /* Wizard Styles */
+    .wizard-step {
+        display: none;
+        animation: fadeIn 0.5s;
+    }
+    .wizard-step.active {
+        display: block;
+    }
+    
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background-color: #e9ecef;
+        z-index: 1;
+        transform: translateY(-50%);
+        border-radius: 2px;
+    }
+    .step-progress {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+        z-index: 2;
+        transform: translateY(-50%);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+    .step-item {
+        position: relative;
+        z-index: 3;
+        background: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #adb5bd;
+        border: 4px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    .step-item.active {
+        color: white;
+        background: var(--primary-color);
+        border-color: #fff;
+        box-shadow: 0 0 0 4px var(--primary-color);
+    }
+    .step-item.completed {
+        color: white;
+        background: #198754;
+        border-color: #fff;
+        box-shadow: 0 0 0 4px #198754;
+    }
+    .step-label {
+        position: absolute;
+        top: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #adb5bd;
+    }
+    .step-item.active .step-label, .step-item.completed .step-label {
+        color: var(--bs-dark);
+    }
+</style>
+
+<div class="row mt-4 mb-5">
+    <div class="col-lg-8 mx-auto">
+        <div class="glass-panel p-5">
+            <h2 class="fw-bold mb-5 text-center" style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <i class="fa-solid fa-house-medical me-2"></i>Đăng Tin Cho Thuê
+            </h2>
+
+            <!-- Progress Bar -->
+            <div class="step-indicator px-4">
+                <div class="step-progress" id="wizardProgress"></div>
+                
+                <div class="step-item active" id="indicator-step-1">1<div class="step-label">Cơ bản</div></div>
+                <div class="step-item" id="indicator-step-2">2<div class="step-label">Vị trí</div></div>
+                <div class="step-item" id="indicator-step-3">3<div class="step-label">Chi tiết</div></div>
+                <div class="step-item" id="indicator-step-4">4<div class="step-label">Hình ảnh</div></div>
+            </div>
+
+            <form id="wizardForm" asp-controller="Room" asp-action="Create" method="post" enctype="multipart/form-data" class="mt-5">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- BƯỚC 1: THÔNG TIN CƠ BẢN -->
+                <div class="wizard-step active" id="step-1">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-circle-info me-2"></i>Bước 1: Thông tin cơ bản</h5>
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <label class="form-label text-secondary small fw-bold">Tiêu đề bài đăng <span class="text-danger">*</span></label>
+                            <input type="text" asp-for="Title" class="form-control form-premium-control" placeholder="Phòng trọ gác gỗ đầy đủ tiện nghi Quận 7" required />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">Loại phòng</label>
+                            <select asp-for="Type" class="form-select form-premium-control" asp-items="Html.GetEnumSelectList<SmartRoomFinder.Models.RoomType>()">
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">Giá thuê (VNĐ/tháng) <span class="text-danger">*</span></label>
+                            <input type="number" asp-for="Price" class="form-control form-premium-control" placeholder="3000000" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">Diện tích (m²) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.1" asp-for="Area" class="form-control form-premium-control" placeholder="25" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">Số phòng ngủ <span class="text-danger">*</span></label>
+                            <input type="number" asp-for="Bedrooms" class="form-control form-premium-control" value="1" required />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BƯỚC 2: VỊ TRÍ & ĐỊA CHỈ -->
+                <div class="wizard-step" id="step-2">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-map-location-dot me-2"></i>Bước 2: Vị trí & Địa chỉ</h5>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Hướng cửa chính</label>
+                            <select asp-for="Direction" class="form-select form-premium-control" asp-items="Html.GetEnumSelectList<SmartRoomFinder.Models.RoomDirection>()">
+                                <option value="">Không xác định</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Khu vực (Quận/Huyện) <span class="text-danger">*</span></label>
+                            <input type="text" asp-for="Location" class="form-control form-premium-control" placeholder="Ví dụ: Quận 7" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                            <input type="text" asp-for="Address" class="form-control form-premium-control" placeholder="Ví dụ: 123 Lê Văn Lương, Phường Tân Hưng, Quận 7, TP. HCM" required />
+                        </div>
+                        <div class="col-12 mt-4">
+                            <label class="form-label text-secondary small fw-bold">Chọn vị trí trên bản đồ <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <div id="location-map" class="rounded-3 border border-light shadow-sm" style="height: 350px; z-index: 1;"></div>
+                                <div class="position-absolute top-0 end-0 m-2" style="z-index: 400;">
+                                    <button type="button" class="btn btn-sm btn-light border shadow-sm fw-bold px-3 py-2 text-primary" style="pointer-events: none; opacity: 0.9;">
+                                        <i class="fa-solid fa-crosshairs me-1"></i> <span id="map-status">Chưa chọn vị trí</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2 small text-muted"><i class="fa-solid fa-circle-info me-1"></i> Click vào bản đồ để thả ghim chính xác vị trí phòng trọ của bạn.</div>
+                            <input type="hidden" asp-for="Latitude" id="roomLatitude" />
+                            <input type="hidden" asp-for="Longitude" id="roomLongitude" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BƯỚC 3: CHI TIẾT & TIỆN ÍCH -->
+                <div class="wizard-step" id="step-3">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-list-check me-2"></i>Bước 3: Chi tiết & Tiện ích</h5>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">Mô tả phòng trọ <span class="text-danger">*</span></label>
+                            <textarea asp-for="Description" class="form-control form-premium-control" rows="5" placeholder="Mô tả thông tin chi tiết về phòng, lối đi, giờ giấc sinh hoạt, chi phí phát sinh điện nước..." required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">Tiện ích kèm theo (Cách nhau bởi dấu phẩy)</label>
+                            <input type="text" asp-for="AmenitiesInput" class="form-control form-premium-control" placeholder="Wifi, Máy lạnh, WC riêng, Kệ bếp, Hầm xe..." value="Wifi, Máy lạnh, WC riêng, Tự do" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BƯỚC 4: HÌNH ẢNH -->
+                <div class="wizard-step" id="step-4">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-images me-2"></i>Bước 4: Hình ảnh</h5>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="alert alert-info border-0 bg-light-info text-info small">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>Nên sử dụng ảnh chụp ngang, sáng sủa và rõ nét để thu hút người thuê.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Ảnh đại diện chính (Cover) <span class="text-danger">*</span></label>
+                            <input type="file" asp-for="MainImage" class="form-control form-premium-control" accept="image/*" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">Danh sách ảnh phụ (Nhiều ảnh)</label>
+                            <div class="upload-dropzone p-4 text-center border rounded-3" id="dropzone" style="border: 2px dashed #0d6efd !important; background: #f8f9fa; cursor: pointer; transition: all 0.2s;">
+                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
+                                <h6>Kéo thả ảnh vào đây hoặc click để chọn</h6>
+                                <p class="text-secondary small mb-0">Hỗ trợ JPG, PNG</p>
+                                <input type="file" asp-for="SubImages" class="d-none" id="SubImages" multiple accept="image/*" />
+                            </div>
+                            <div id="imagePreviewContainer" class="d-flex flex-wrap gap-3 mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="d-flex gap-3 justify-content-between mt-5 pt-3 border-top">
+                    <div>
+                        <button type="button" class="btn btn-premium-secondary px-4 py-2" id="btnPrev" style="display:none;">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Quay lại
+                        </button>
+                    </div>
+                    <div>
+                        <a asp-action="Manage" class="btn btn-link text-secondary text-decoration-none me-3" id="btnCancel">Hủy bỏ</a>
+                        <button type="button" class="btn btn-primary px-5 py-2" id="btnNext">
+                            Tiếp theo<i class="fa-solid fa-arrow-right ms-2"></i>
+                        </button>
+                        <button type="submit" class="btn btn-success px-5 py-2" id="btnSubmit" style="display:none;">
+                            <i class="fa-solid fa-cloud-arrow-up me-2"></i>Đăng Tin
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentStep = 1;
+            const totalSteps = 4;
+            
+            const btnNext = document.getElementById('btnNext');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const btnCancel = document.getElementById('btnCancel');
+            
+            function updateWizard() {
+                // Hide all steps
+                document.querySelectorAll('.wizard-step').forEach(step => {
+                    step.classList.remove('active');
+                });
+                
+                // Show current step
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                
+                // Update Progress Bar
+                const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+                document.getElementById('wizardProgress').style.width = `${progressPercentage}%`;
+                
+                // Update Indicators
+                for (let i = 1; i <= totalSteps; i++) {
+                    const indicator = document.getElementById(`indicator-step-${i}`);
+                    if (i < currentStep) {
+                        indicator.className = 'step-item completed';
+                        indicator.innerHTML = '<i class="fa-solid fa-check"></i><div class="step-label">' + getStepLabel(i) + '</div>';
+                    } else if (i === currentStep) {
+                        indicator.className = 'step-item active';
+                        indicator.innerHTML = i + '<div class="step-label">' + getStepLabel(i) + '</div>';
+                    } else {
+                        indicator.className = 'step-item';
+                        indicator.innerHTML = i + '<div class="step-label">' + getStepLabel(i) + '</div>';
+                    }
+                }
+                
+                // Invalidate Map size if step 2
+                if (currentStep === 2 && window.roomMap) {
+                    setTimeout(() => {
+                        window.roomMap.invalidateSize();
+                    }, 200);
+                }
+
+                // Toggle Buttons
+                if (currentStep === 1) {
+                    btnPrev.style.display = 'none';
+                    btnCancel.style.display = 'inline-block';
+                } else {
+                    btnPrev.style.display = 'inline-block';
+                    btnCancel.style.display = 'none';
+                }
+                
+                if (currentStep === totalSteps) {
+                    btnNext.style.display = 'none';
+                    btnSubmit.style.display = 'inline-block';
+                } else {
+                    btnNext.style.display = 'inline-block';
+                    btnSubmit.style.display = 'none';
+                }
+            }
+            
+            function getStepLabel(step) {
+                const labels = {1: 'Cơ bản', 2: 'Vị trí', 3: 'Chi tiết', 4: 'Hình ảnh'};
+                return labels[step];
+            }
+
+            // --- MAP LOGIC ---
+            var defaultLat = 10.762622;
+            var defaultLng = 106.660172;
+            window.roomMap = L.map('location-map').setView([defaultLat, defaultLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(window.roomMap);
+
+            var mapMarker = null;
+
+            window.roomMap.on('click', function(e) {
+                var lat = e.latlng.lat;
+                var lng = e.latlng.lng;
+                
+                document.getElementById('roomLatitude').value = lat;
+                document.getElementById('roomLongitude').value = lng;
+                
+                var statusBtn = document.getElementById('map-status');
+                statusBtn.innerHTML = "Đã chọn vị trí";
+                statusBtn.parentElement.classList.replace('text-primary', 'text-success');
+
+                if (mapMarker) {
+                    mapMarker.setLatLng(e.latlng);
+                } else {
+                    var customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: "<i class='fa-solid fa-location-dot text-danger' style='font-size: 32px; filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));'></i>",
+                        iconSize: [30, 42],
+                        iconAnchor: [15, 42]
+                    });
+                    mapMarker = L.marker(e.latlng, {icon: customIcon}).addTo(window.roomMap);
+                }
+            });
+
+            // Try to get user's current location
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    if(!mapMarker) {
+                        window.roomMap.setView([position.coords.latitude, position.coords.longitude], 15);
+                    }
+                });
+            }
+
+            // Auto-update map when typing address
+            var addressInput = document.getElementById('Address');
+            var typingTimer;
+            if (addressInput) {
+                addressInput.addEventListener('input', function() {
+                    clearTimeout(typingTimer);
+                    var query = addressInput.value;
+                    if (query.length > 5) {
+                        typingTimer = setTimeout(function() {
+                            // Call Nominatim API for geocoding
+                            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Vietnam')}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data && data.length > 0) {
+                                        var lat = parseFloat(data[0].lat);
+                                        var lon = parseFloat(data[0].lon);
+                                        
+                                        window.roomMap.setView([lat, lon], 16);
+                                        
+                                        document.getElementById('roomLatitude').value = lat;
+                                        document.getElementById('roomLongitude').value = lon;
+                                        
+                                        var statusBtn = document.getElementById('map-status');
+                                        statusBtn.innerHTML = "Đã chọn vị trí";
+                                        statusBtn.parentElement.classList.replace('text-primary', 'text-success');
+
+                                        if (mapMarker) {
+                                            mapMarker.setLatLng([lat, lon]);
+                                        } else {
+                                            var customIcon = L.divIcon({
+                                                className: 'custom-div-icon',
+                                                html: "<i class='fa-solid fa-location-dot text-danger' style='font-size: 32px; filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));'></i>",
+                                                iconSize: [30, 42],
+                                                iconAnchor: [15, 42]
+                                            });
+                                            mapMarker = L.marker([lat, lon], {icon: customIcon}).addTo(window.roomMap);
+                                        }
+                                    }
+                                })
+                                .catch(err => console.log('Geocoding error:', err));
+                        }, 1000); // 1 second debounce
+                    }
+                });
+            }
+            // -----------------
+            
+            // Validate current step fields before proceeding
+            function validateCurrentStep() {
+                const currentStepElement = document.getElementById(`step-${currentStep}`);
+                const inputs = currentStepElement.querySelectorAll('input[required], select[required], textarea[required]');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    if (!input.checkValidity()) {
+                        input.reportValidity();
+                        isValid = false;
+                    }
+                });
+                
+                return isValid;
+            }
+            
+            btnNext.addEventListener('click', function () {
+                if (validateCurrentStep()) {
+                    if (currentStep < totalSteps) {
+                        currentStep++;
+                        updateWizard();
+                    }
+                }
+            });
+            
+            btnPrev.addEventListener('click', function () {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateWizard();
+                }
+            });
+
+            // Drag and Drop Upload Logic
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('SubImages');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            let selectedFiles = []; // Keep track of active files
+
+            dropzone.addEventListener('click', () => fileInput.click());
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.style.backgroundColor = '#e9ecef';
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.style.backgroundColor = '#f8f9fa';
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.style.backgroundColor = '#f8f9fa';
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+
+            function handleFiles(files) {
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        selectedFiles.push(file);
+                        renderPreview(file, selectedFiles.length - 1);
+                    }
+                });
+                updateFileInput();
+            }
+
+            function renderPreview(file, index) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative shadow-sm rounded-3';
+                    div.style.width = '100px';
+                    div.style.height = '100px';
+                    div.dataset.index = index;
+                    
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-100 h-100 rounded-3" style="object-fit: cover; border: 2px solid #fff;" />
+                        <button type="button" class="btn btn-danger btn-sm position-absolute rounded-circle shadow" 
+                                style="top: -8px; right: -8px; width: 24px; height: 24px; padding: 0; line-height: 1; z-index: 2;" 
+                                onclick="removeImage(${index}, this)">
+                            <i class="fa-solid fa-xmark" style="font-size: 0.7rem;"></i>
+                        </button>
+                    `;
+                    previewContainer.appendChild(div);
+                }
+                reader.readAsDataURL(file);
+            }
+
+            window.removeImage = function(index, btn) {
+                selectedFiles[index] = null; // Mark as removed to maintain index stability
+                btn.parentElement.remove();
+                updateFileInput();
+            }
+
+            function updateFileInput() {
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => {
+                    if (file !== null) {
+                        dt.items.add(file);
+                    }
+                });
+                fileInput.files = dt.files;
+            }
+        });
+    </script>
+}

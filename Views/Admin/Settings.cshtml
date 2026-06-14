@@ -1,0 +1,97 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Cài đặt Hệ thống";
+    ViewData["Subtitle"] = "Cấu hình ứng dụng và tài khoản quản trị viên.";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="admin-card mb-4" style="border-top: 4px solid var(--admin-primary); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3 text-primary">
+                    <i class="fa-solid fa-server fs-4"></i>
+                </div>
+                <h5 class="fw-bold m-0" style="color: var(--admin-primary);">Thông tin hệ thống</h5>
+            </div>
+            
+            <form asp-controller="Admin" asp-action="UpdateSettings" method="post">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Tên Website</label>
+                        <input type="text" class="form-control bg-light border-0 py-2" name="siteName" value="@ViewBag.SiteName" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Email Liên hệ Hệ thống</label>
+                        <input type="email" class="form-control bg-light border-0 py-2" name="adminEmail" value="@ViewBag.AdminEmail" />
+                    </div>
+                    
+                    <div class="col-12 mt-4">
+                        <div class="p-3 bg-light rounded-3 border border-warning border-opacity-25 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-dark d-block mb-1"><i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Chế độ bảo trì</span>
+                                <small class="text-muted">Khi bật, người dùng sẽ không thể truy cập vào trang web, chỉ có Admin mới có thể truy cập.</small>
+                            </div>
+                            <div class="form-check form-switch fs-4 m-0">
+                                <input class="form-check-input shadow-none" type="checkbox" role="switch" id="maintenanceMode" name="maintenanceMode" value="true" @(ViewBag.MaintenanceMode == true ? "checked" : "") style="cursor: pointer;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 mt-4 text-end">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-pill"><i class="fa-solid fa-floppy-disk me-2"></i> Lưu cấu hình hệ thống</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="admin-card" style="border-top: 4px solid var(--admin-secondary); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-secondary bg-opacity-10 p-3 rounded-circle me-3 text-secondary">
+                    <i class="fa-solid fa-shield-halved fs-4"></i>
+                </div>
+                <h5 class="fw-bold m-0" style="color: var(--admin-secondary);">Đổi mật khẩu Admin</h5>
+            </div>
+            <form method="post" action="#">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small fw-bold">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control bg-light border-0 py-2" placeholder="••••••••" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small fw-bold">Mật khẩu mới</label>
+                        <input type="password" class="form-control bg-light border-0 py-2" placeholder="••••••••" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small fw-bold">Nhập lại mật khẩu</label>
+                        <input type="password" class="form-control bg-light border-0 py-2" placeholder="••••••••" />
+                    </div>
+                    <div class="col-12 mt-4 text-end">
+                        <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-bold rounded-pill" onclick="alert('Tính năng đang phát triển!')"><i class="fa-solid fa-key me-2"></i> Cập nhật mật khẩu</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="admin-card mb-4" style="background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary)); color: white;">
+            <h6 class="fw-bold mb-3 text-white">Gói dịch vụ</h6>
+            <div class="d-flex align-items-center mb-4">
+                <i class="fa-solid fa-crown fa-2x text-warning me-3"></i>
+                <div>
+                    <h5 class="fw-bold text-white m-0">Premium Hosting</h5>
+                    <small style="color: rgba(255,255,255,0.8);">Còn lại 325 ngày</small>
+                </div>
+            </div>
+            <button class="btn w-100" style="background: rgba(255,255,255,0.2); color: white; border: none;">Gia hạn ngay</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,249 @@
+@model IEnumerable<SmartRoomFinder.Models.RoomModel>
+
+@{
+    ViewData["Title"] = "Bản Đồ Tìm Phòng Trọ";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<div class="container-fluid px-4 mt-3 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-1 poppins-title"><i class="fa-solid fa-map-location-dot text-primary me-2"></i>Tìm Kiếm Phòng Trên Bản Đồ</h3>
+            <p class="text-secondary small mb-0">Xem khoảng cách từ phòng trọ đến các trường đại học lớn trực quan trên bản đồ.</p>
+        </div>
+        <a class="btn btn-premium-secondary btn-sm" asp-action="Index"><i class="fa-solid fa-house me-1"></i> Trở về Trang chủ</a>
+    </div>
+
+    <!-- Chia đôi màn hình full height -->
+    <div class="row g-4" style="min-height: calc(100vh - 180px);">
+        <!-- Cột bên trái: Danh sách phòng trọ (cuộn độc lập) -->
+        <div class="col-lg-5" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 15px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-secondary small fw-bold">Hiện có @Model.Count() phòng trong khu vực</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary">Map View</span>
+            </div>
+
+            <div class="row g-3">
+                @foreach (var room in Model)
+                {
+                    <div class="col-12">
+                        <div class="card glass-panel border border-secondary border-opacity-10 p-3 h-100 room-card-premium" style="background: #FFFFFF;">
+                            <div class="row g-3">
+                                <div class="col-4">
+                                    <img src="@room.MainImageUrl" class="rounded-3 w-100 h-100 object-fit-cover" style="min-height: 110px;" alt="Room" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=150&q=80'">
+                                </div>
+                                <div class="col-8 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h6 class="fw-bold mb-1 text-truncate" style="max-width: 180px;">@room.Title</h6>
+                                            <span class="rating-star-premium small" style="font-size: 0.75rem;"><i class="fa-solid fa-star me-1"></i>@room.Rating.ToString("0.0")</span>
+                                        </div>
+                                        <p class="small text-secondary mb-2" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot text-danger me-1"></i> @room.Location</p>
+                                        <span class="badge bg-light text-primary border border-primary border-opacity-10 py-1 px-2" style="font-size: 0.65rem;">@room.Type.ToString()</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="price-premium small" style="font-size: 1.15rem;">@room.Price.ToString("#,##0") <span class="small text-secondary fw-normal" style="font-size: 0.75rem;">đ/th</span></span>
+                                        <a class="btn btn-premium btn-sm px-3 py-1" style="font-size: 0.75rem; border-radius: 15px;" asp-action="Detail" asp-route-id="@room.Id">Chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Cột bên phải: Bản đồ lớn (mockup) -->
+        <div class="col-lg-7">
+            <div class="map-sticky-panel" style="height: calc(100vh - 180px); top: 0;">
+                <div class="map-header mb-3">
+                    <h6 class="fw-bold mb-3 poppins-title"><i class="fa-solid fa-earth-americas text-primary me-2"></i>Tìm kiếm theo bán kính (Radius Search)</h6>
+                    <div class="search-bar-floating shadow-sm" style="margin-top: 0; padding: 6px;">
+                        <div class="search-bar-field py-1">
+                            <label><i class="fa-solid fa-location-dot text-danger me-1"></i> Mốc vị trí trung tâm</label>
+                            <select id="landmarkSelect" class="form-select form-select-sm border-0 bg-transparent px-0 fw-bold shadow-none">
+                                <option value="">-- Chọn mốc vị trí --</option>
+                            </select>
+                        </div>
+                        <div class="search-bar-field py-1">
+                            <label><i class="fa-solid fa-compass text-primary me-1"></i> Phạm vi bán kính</label>
+                            <select id="radiusSelect" class="form-select form-select-sm border-0 bg-transparent px-0 fw-bold shadow-none">
+                                <option value="1">Trong vòng 1 km</option>
+                                <option value="3" selected>Trong vòng 3 km</option>
+                                <option value="5">Trong vòng 5 km</option>
+                                <option value="10">Trong vòng 10 km</option>
+                            </select>
+                        </div>
+                        <div class="ms-2 pe-1 d-flex gap-2 align-items-center">
+                            <button id="btnSearchRadius" class="btn btn-search-premium rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; transition: all 0.2s;" title="Tìm kiếm">
+                                <i class="fa-solid fa-magnifying-glass fs-5"></i>
+                            </button>
+                            <button id="btnResetMap" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; transition: all 0.2s;" title="Khôi phục mặc định">
+                                <i class="fa-solid fa-rotate-right text-secondary fs-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="map-body-mock bg-light border border-secondary border-opacity-25" style="border-radius: 1rem; overflow: hidden; position: relative;">
+                    <div id="real-map" style="width: 100%; height: 100%;"></div>
+                </div>
+
+                <!-- Bottom Mini Card (Dynamic updates via Javascript) -->
+                <div class="p-3 bg-white border-top border-light animate-fade-in" id="miniMapCard">
+                    <div class="d-flex align-items-center">
+                        <img id="miniCardImg" src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=150&q=80" 
+                             class="rounded me-3" style="width: 70px; height: 70px; object-fit: cover;" alt="Mini">
+                        <div class="flex-grow-1 min-width-0">
+                            <h6 class="fw-bold mb-1 text-truncate" id="miniCardTitle">Phòng trọ gác gỗ đơn giản Quận 7</h6>
+                            <span class="small text-secondary d-block mb-1"><i class="fa-solid fa-location-dot text-danger me-1"></i> Xung quanh khu vực Đại Học</span>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-primary fw-bold small" id="miniCardPrice">2.500.000đ / tháng</span>
+                                <span class="text-warning small" style="font-size: 0.7rem;"><i class="fa-solid fa-star"></i> <span id="miniCardRating">4.2</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Init map centered at HCMC (default)
+        var map = L.map('real-map').setView([10.800, 106.700], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+
+        // Add custom markers from model
+        var rooms = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(r => new { r.Id, r.Title, r.Price, r.Rating, r.MainImageUrl, r.Latitude, r.Longitude })));
+        
+        // HUTECH marker
+        var hutechIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#0d6efd; color:white; padding:5px 10px; border-radius:15px; font-weight:bold; font-size:12px; box-shadow:0 2px 5px rgba(0,0,0,0.3);'><i class='fa-solid fa-graduation-cap me-1'></i>HUTECH</div>", iconSize: [90, 30], iconAnchor: [45, 15] });
+        L.marker([10.800, 106.711], {icon: hutechIcon}).addTo(map).bindPopup("Đại học HUTECH");
+
+        function showMiniCard(title, price, rating, img, id) {
+            document.getElementById('miniCardTitle').innerText = title;
+            document.getElementById('miniCardPrice').innerText = price + ' / tháng';
+            document.getElementById('miniCardRating').innerText = rating || '5.0';
+            document.getElementById('miniCardImg').src = img;
+            
+            // Cập nhật link chi tiết
+            var card = document.getElementById('miniMapCard');
+            card.onclick = function() { window.location.href = '/Home/Detail/' + id; };
+            card.style.cursor = 'pointer';
+
+            card.style.animation = 'none';
+            card.offsetHeight; // trigger reflow
+            card.style.animation = 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        }
+
+        // ==========================
+        // Radius Search Logic (AJAX)
+        // ==========================
+        var currentMarkers = [];
+        var radiusCircle = null;
+        var landmarkMarker = null;
+
+        function clearMap() {
+            currentMarkers.forEach(m => map.removeLayer(m));
+            currentMarkers = [];
+            if (radiusCircle) map.removeLayer(radiusCircle);
+            if (landmarkMarker) map.removeLayer(landmarkMarker);
+        }
+
+        // Tải danh sách Landmarks
+        fetch('/api/LandmarkApi')
+            .then(res => res.json())
+            .then(data => {
+                if(data.success && data.data) {
+                    var select = document.getElementById('landmarkSelect');
+                    data.data.forEach(l => {
+                        var opt = document.createElement('option');
+                        opt.value = l.latitude + ',' + l.longitude;
+                        opt.text = l.name;
+                        select.appendChild(opt);
+                    });
+                }
+            });
+
+        document.getElementById('btnSearchRadius').addEventListener('click', function() {
+            var val = document.getElementById('landmarkSelect').value;
+            var radius = parseFloat(document.getElementById('radiusSelect').value);
+            if (!val) {
+                alert('Vui lòng chọn mốc vị trí!'); return;
+            }
+            var parts = val.split(',');
+            var lat = parseFloat(parts[0]);
+            var lng = parseFloat(parts[1]);
+
+            clearMap();
+
+            // Vẽ tâm
+            var icon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#0d6efd; color:white; padding:5px 10px; border-radius:15px; font-weight:bold; font-size:12px; box-shadow:0 2px 5px rgba(0,0,0,0.3);'><i class='fa-solid fa-location-crosshairs me-1'></i>Tâm</div>", iconSize: [80, 30], iconAnchor: [40, 15] });
+            landmarkMarker = L.marker([lat, lng], {icon: icon}).addTo(map);
+
+            // Vẽ vòng tròn bán kính
+            radiusCircle = L.circle([lat, lng], {
+                color: '#0d6efd',
+                fillColor: '#0d6efd',
+                fillOpacity: 0.1,
+                radius: radius * 1000
+            }).addTo(map);
+
+            map.fitBounds(radiusCircle.getBounds());
+
+            // Gọi API
+            fetch(`/api/RoomApi/radius?lat=${lat}&lng=${lng}&radiusKm=${radius}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success && res.data) {
+                        res.data.forEach(function(room) {
+                            var priceStr = (room.price / 1000000).toFixed(1) + 'tr';
+                            var roomIcon = L.divIcon({
+                                className: 'custom-div-icon',
+                                html: "<div style='background-color:#ef4444; color:white; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:11px; box-shadow:0 2px 5px rgba(0,0,0,0.3); cursor:pointer;'>" + priceStr + "</div>",
+                                iconSize: [40, 24],
+                                iconAnchor: [20, 12]
+                            });
+                            
+                            var marker = L.marker([room.latitude, room.longitude], {icon: roomIcon}).addTo(map);
+                            currentMarkers.push(marker);
+                            
+                            marker.on('click', function() {
+                                showMiniCard(room.title, new Intl.NumberFormat('vi-VN').format(room.price) + 'đ', '5.0', room.imageUrl, room.id);
+                            });
+                        });
+                        alert(`Tìm thấy ${res.count} phòng trong bán kính ${radius}km!`);
+                    }
+                });
+        });
+
+        document.getElementById('btnResetMap').addEventListener('click', function() {
+            window.location.reload();
+        });
+
+        // Initialize default markers from SSR
+        rooms.forEach(function(room) {
+            if(room.Latitude && room.Longitude) {
+                var priceStr = (room.Price / 1000000).toFixed(1) + 'tr';
+                var roomIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: "<div style='background-color:#ef4444; color:white; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:11px; box-shadow:0 2px 5px rgba(0,0,0,0.3); cursor:pointer;'>" + priceStr + "</div>",
+                    iconSize: [40, 24],
+                    iconAnchor: [20, 12]
+                });
+                
+                var marker = L.marker([room.Latitude, room.Longitude], {icon: roomIcon}).addTo(map);
+                currentMarkers.push(marker);
+                
+                marker.on('click', function() {
+                    showMiniCard(room.Title, new Intl.NumberFormat('vi-VN').format(room.Price) + 'đ', room.Rating.toFixed(1), room.MainImageUrl, room.Id);
+                });
+            }
+        });
+    </script>
+}

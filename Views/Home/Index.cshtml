@@ -1,0 +1,258 @@
+@model IEnumerable<SmartRoomFinder.Models.RoomModel>
+
+@{
+    ViewData["Title"] = "SMART ROOM FINDER";
+    var currentType = ViewData["Type"] as SmartRoomFinder.Models.RoomType?;
+    var favoriteRoomIds = ViewData["FavoriteRoomIds"] as List<string> ?? new List<string>();
+}
+
+<!-- 1. Dark Hero Banner Section -->
+<div class="hero-section-premium animate-fade-in">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-start">
+                <h1 class="mb-4 text-white fw-bold">Tìm phòng trọ<br>nhanh chóng & an toàn</h1>
+                <p class="hero-subtitle mb-4">
+                    Kết nối sinh viên với những phòng trọ uy tín thông qua bản đồ thông minh và đánh giá từ người thuê trước.
+                </p>
+                
+                <!-- Benefit Badges matching mockup -->
+                <div class="mb-2">
+                    <div class="benefit-tag">
+                        <i class="fa-solid fa-shield-halved me-2"></i>
+                        <div>
+                            <span class="d-block fw-bold text-white" style="font-size: 0.75rem;">Chủ nhà xác thực</span>
+                            <span class="text-secondary" style="font-size: 0.65rem;">An tâm tuyệt đối</span>
+                        </div>
+                    </div>
+                    <div class="benefit-tag">
+                        <i class="fa-solid fa-star me-2"></i>
+                        <div>
+                            <span class="d-block fw-bold text-white" style="font-size: 0.75rem;">Đánh giá minh bạch</span>
+                            <span class="text-secondary" style="font-size: 0.65rem;">Từ người thuê trước</span>
+                        </div>
+                    </div>
+                    <div class="benefit-tag">
+                        <i class="fa-solid fa-compass me-2"></i>
+                        <div>
+                            <span class="d-block fw-bold text-white" style="font-size: 0.75rem;">Tìm kiếm thông minh</span>
+                            <span class="text-secondary" style="font-size: 0.65rem;">Gần trường, tiện ích</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block text-end">
+                <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=650&q=80" 
+                     alt="Modern Room" class="rounded-5 shadow-lg border border-secondary border-opacity-25" 
+                     style="max-width: 100%; height: 350px; object-fit: cover; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Floating Search Bar Overlay -->
+<div class="container search-bar-floating-container">
+    <div class="search-bar-floating">
+        <form method="get" asp-controller="Home" asp-action="Index" class="w-100 d-flex flex-wrap align-items-center">
+            <div class="search-bar-field">
+                <label>Khu vực</label>
+                <input type="text" name="location" placeholder="Chọn khu vực..." value="@ViewData["Location"]" />
+            </div>
+            
+            <div class="search-bar-field">
+                <label>Khoảng giá</label>
+                <input type="number" name="maxPrice" placeholder="Chọn khoảng giá..." value="@ViewData["MaxPrice"]" />
+            </div>
+
+            <div class="search-bar-field">
+                <label>Loại phòng</label>
+                <select name="type">
+                    <option value="">Chọn loại phòng</option>
+                    @foreach (var typeVal in Enum.GetValues<SmartRoomFinder.Models.RoomType>())
+                    {
+                        @if (currentType == typeVal)
+                        {
+                            <option value="@typeVal" selected>@typeVal</option>
+                        }
+                        else
+                        {
+                            <option value="@typeVal">@typeVal</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="search-bar-field">
+                <label>Tiện ích</label>
+                <input type="text" name="search" placeholder="Chọn tiện ích..." value="@ViewData["Search"]" />
+            </div>
+
+            <div class="search-bar-field">
+                <label>Đánh giá</label>
+                <select name="rating">
+                    <option value="">Chọn đánh giá</option>
+                    <option value="5" selected="@(ViewData["Rating"]?.ToString() == "5" ? "selected" : null)">5 sao</option>
+                    <option value="4" selected="@(ViewData["Rating"]?.ToString() == "4" ? "selected" : null)">Từ 4 sao trở lên</option>
+                </select>
+            </div>
+
+            <div class="p-1">
+                <button type="submit" class="btn btn-search-premium d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm ngay
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. Features Row Banner -->
+<div class="container mb-5">
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="feature-card-premium">
+                <div class="feature-icon-wrapper icon-purple">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <h6 class="fw-bold mb-2">AI Gợi ý thông minh</h6>
+                <p class="text-secondary small mb-0">Đề xuất phòng phù hợp nhất với nhu cầu và lịch sử xem của bạn.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-card-premium">
+                <div class="feature-icon-wrapper icon-blue">
+                    <i class="fa-solid fa-map"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Bản đồ trực quan</h6>
+                <p class="text-secondary small mb-0">Xem trực quan phòng gần trường học, ước tính khoảng cách và chỉ đường.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-card-premium">
+                <div class="feature-icon-wrapper icon-green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Chủ nhà xác thực</h6>
+                <p class="text-secondary small mb-0">Thông tin CCCD, email, SĐT rõ ràng, đã được kiểm duyệt giúp tránh lừa đảo.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-card-premium">
+                <div class="feature-icon-wrapper icon-orange">
+                    <i class="fa-solid fa-star-half-stroke"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Đánh giá minh bạch</h6>
+                <p class="text-secondary small mb-0">Chỉ những sinh viên thực tế đã thuê mới được phép đăng bài đánh giá.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Main Catalog -->
+<div class="container mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0">Phòng trọ nổi bật ✨</h3>
+                <a href="#" class="text-primary fw-bold text-decoration-none small">Xem tất cả <i class="fa-solid fa-chevron-right ms-1"></i></a>
+            </div>
+
+            <div class="row g-4">
+                @if (!Model.Any())
+                {
+                    <div class="col-12 text-center py-5">
+                        <i class="fa-solid fa-circle-exclamation fs-1 text-secondary mb-3"></i>
+                        <h5 class="text-secondary fw-bold">Không tìm thấy phòng trọ nào.</h5>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var room in Model)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="room-card-premium h-100 d-flex flex-column">
+                                <div class="room-card-img-wrapper">
+                                    <span class="room-badge-premium badge-verified-light">
+                                        <i class="fa-solid fa-circle-check me-1"></i> VERIFIED OWNER
+                                    </span>
+                                    @{
+                                        var isFav = favoriteRoomIds.Contains(room.Id);
+                                    }
+                                    <div class="wishlist-btn-premium @(isFav ? "active" : "")" onclick="toggleFavorite(this, '@room.Id')">
+                                        <i class="fa-solid fa-heart"></i>
+                                    </div>
+                                    <span class="rating-badge-floating">
+                                        <i class="fa-solid fa-star me-1 text-gold"></i>@room.Rating.ToString("0.0")
+                                    </span>
+                                    <img src="@room.MainImageUrl" class="room-card-img" alt="Room" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80'">
+                                </div>
+                                <div class="p-4 d-flex flex-column flex-grow-1">
+                                    <h5 class="fw-bold mb-1 text-truncate">@room.Title</h5>
+                                    <p class="small text-secondary mb-3"><i class="fa-solid fa-location-dot text-danger me-1"></i> @room.Location</p>
+                                    
+                                    <div class="row g-2 mb-3 text-secondary small">
+                                        <div class="col-6"><i class="fa-solid fa-wifi text-primary me-2"></i>Wifi</div>
+                                        <div class="col-6"><i class="fa-solid fa-snowflake text-primary me-2"></i>Máy lạnh</div>
+                                        <div class="col-6"><i class="fa-solid fa-square-parking text-primary me-2"></i>Giữ xe</div>
+                                        <div class="col-6"><i class="fa-solid fa-door-closed text-primary me-2"></i>WC riêng</div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light">
+                                        <div class="price-premium">
+                                            @room.Price.ToString("#,##0") <span class="small text-secondary fw-normal" style="font-size: 0.8rem;">đ/tháng</span>
+                                        </div>
+                                        <a class="btn btn-premium-secondary px-3 btn-sm" asp-action="Detail" asp-route-id="@room.Id">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Stats Banner at the bottom of left column -->
+            <div class="stats-banner-premium">
+                <div class="stat-item">
+                    <i class="fa-solid fa-house-circle-check stat-icon text-gold"></i>
+                    <div class="stat-num">10.234+</div>
+                    <div class="stat-label">Phòng trọ đang cho thuê</div>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-user-graduate stat-icon text-blue"></i>
+                    <div class="stat-num">25.678+</div>
+                    <div class="stat-label">Sinh viên đã tin tưởng</div>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-ranking-star stat-icon text-gold"></i>
+                    <div class="stat-num">15.890+</div>
+                    <div class="stat-label">Đánh giá từ người thuê</div>
+                </div>
+                <div class="stat-item">
+                    <i class="fa-solid fa-user-shield stat-icon text-green"></i>
+                    <div class="stat-num">100%</div>
+                    <div class="stat-label">Chủ nhà đã xác thực</div>
+                </div>
+            </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleFavorite(btn, roomId) {
+            fetch('/Home/ToggleFavorite/' + roomId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => {
+                if (res.ok) return res.json();
+                window.location.href = '/Auth/Login';
+            })
+            .then(data => {
+                if (data.isFavorite) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    </script>
+}

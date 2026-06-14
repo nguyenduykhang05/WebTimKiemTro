@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SMART ROOM FINDER</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom styling -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body.dark-theme {
+            --bg-white: #0f172a !important;
+            --bg-light-gray: #1e293b !important;
+            --text-primary: #f8fafc !important;
+            --text-secondary: #94a3b8 !important;
+            --border-gray: #334155 !important;
+            --primary-navy: #f8fafc !important;
+            background-color: var(--bg-white) !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .glass-panel {
+            background-color: rgba(30, 41, 59, 0.5) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+            color: var(--text-primary) !important;
+            border-radius: 20px;
+            padding: 30px;
+        }
+        body.dark-theme .bg-white,
+        body.dark-theme .bg-light {
+            background-color: var(--bg-light-gray) !important;
+            border-color: var(--border-gray) !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .text-dark { color: var(--text-primary) !important; }
+        body.dark-theme .text-secondary { color: var(--text-secondary) !important; }
+        body.dark-theme .form-control, body.dark-theme .form-select, body.dark-theme .search-bar-floating {
+            background-color: var(--bg-light-gray) !important;
+            border-color: var(--border-gray) !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .form-control::placeholder { color: var(--text-secondary) !important; }
+        body.dark-theme select option {
+            background-color: var(--bg-white) !important;
+            color: var(--text-primary) !important;
+        }
+        body.dark-theme .btn-premium-secondary {
+            background-color: var(--border-gray) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-gray) !important;
+        }
+        body.dark-theme .btn-premium-secondary strong { color: var(--text-primary) !important; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                    <!-- Home Logo Icon matching mockup -->
+                    <i class="fa-solid fa-house-chimney text-warning me-2 fs-4"></i>
+                    <span style="font-family: 'Poppins', sans-serif; font-weight: 800; letter-spacing: -0.5px;">
+                        SMART <span style="color: #F59E0B;">ROOM FINDER</span>
+                    </span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        @if (User.IsInRole("Landlord"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Room" asp-action="Dashboard">
+                                    <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Manage" ? "active" : "")" asp-controller="Room" asp-action="Manage">
+                                    <i class="fa-solid fa-list-check me-1"></i> Quản lý phòng
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Applications" ? "active" : "")" asp-controller="Room" asp-action="Applications">
+                                    <i class="fa-solid fa-file-invoice me-1"></i> Đơn thuê phòng
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "active" : "")" asp-controller="Room" asp-action="Create">
+                                    <i class="fa-solid fa-plus me-1"></i> Đăng tin mới
+                                </a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-danger fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Admin" asp-action="Dashboard">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> Trang Quản Trị
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Dashboard" asp-route-status="Pending">
+                                    <i class="fa-solid fa-check-double me-1"></i> Duyệt Phòng
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                                    Trang chủ
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">Tìm phòng</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Map" ? "active" : "")" asp-controller="Home" asp-action="Map">Bản đồ</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Blog" ? "active" : "")" asp-controller="Home" asp-action="Blog">Blog</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Contact" ? "active" : "")" asp-controller="Home" asp-action="Contact">Liên hệ</a>
+                            </li>
+                        }
+                    </ul>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Theme Toggle Icon -->
+                        <a href="javascript:void(0)" id="themeToggle" class="text-secondary opacity-75 hover-opacity-100 fs-5"><i id="themeIcon" class="fa-regular fa-moon"></i></a>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <!-- Notification Bell -->
+                            <div class="dropdown">
+                                <a href="javascript:void(0)" class="text-secondary opacity-75 hover-opacity-100 fs-5 position-relative dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="bellIcon" style="text-decoration: none;">
+                                    <i class="fa-regular fa-bell"></i>
+                                    <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem; margin-left: -5px;">0</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end mt-2 border-0 shadow-lg p-0" style="width: 320px; border-radius: 16px; background: #0F172A; overflow: hidden;" aria-labelledby="bellIcon">
+                                    <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0 text-white fw-bold">Thông báo</h6>
+                                        <a href="javascript:void(0)" id="btnReadAll" class="text-info small text-decoration-none">Đánh dấu đã đọc</a>
+                                    </div>
+                                    <div id="notifList" class="overflow-auto" style="max-height: 350px;">
+                                        <div class="p-3 text-center text-secondary small">Đang tải...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="dropdown">
+                                <button class="btn btn-login-header dropdown-toggle d-flex align-items-center" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-circle-user me-2 text-warning"></i>
+                                    <span>@User.Identity.Name</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end mt-2 border-0 shadow-lg p-2" style="border-radius: 16px; background: #0F172A;" aria-labelledby="userMenu">
+                                    <li>
+                                        <a class="dropdown-item text-white rounded-3 py-2" asp-controller="Profile" asp-action="Index">
+                                            <i class="fa-solid fa-user me-2 text-warning"></i> Hồ sơ cá nhân
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-white rounded-3 py-2" asp-controller="Auth" asp-action="ChooseRole">
+                                            <i class="fa-solid fa-arrows-spin me-2 text-info"></i> Đổi vai trò
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider border-secondary"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger rounded-3 py-2" asp-controller="Auth" asp-action="Logout">
+                                            <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-login-header" asp-controller="Auth" asp-action="Login">Đăng nhập</a>
+                            <a class="btn btn-register-header" asp-controller="Auth" asp-action="Register">Đăng ký</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="footer-custom mt-5">
+        <div class="container text-center">
+            <h5 class="fw-bold mb-2" style="font-family: 'Poppins', sans-serif;">SMART ROOM FINDER</h5>
+            <p class="text-secondary small mb-3">Ứng dụng hỗ trợ tìm kiếm phòng trọ thông minh cho sinh viên</p>
+            <div class="text-muted small">&copy; 2026 - SMART ROOM FINDER. Bản quyền giao diện Premium.</div>
+        </div>
+    </footer>
+
+    @await Html.PartialAsync("_AIAssistantWidget")
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            var icon = document.getElementById('themeIcon');
+            if (document.body.classList.contains('dark-theme')) {
+                document.body.classList.remove('dark-theme');
+                icon.className = 'fa-regular fa-moon text-white';
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.classList.add('dark-theme');
+                icon.className = 'fa-solid fa-sun text-warning';
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            document.getElementById('themeIcon').className = 'fa-solid fa-sun text-warning';
+        } else {
+            document.getElementById('themeIcon').className = 'fa-regular fa-moon text-white';
+        }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+        <text>
+        document.addEventListener("DOMContentLoaded", function() {
+            var notifBadge = document.getElementById('notifBadge');
+            var notifList = document.getElementById('notifList');
+            var btnReadAll = document.getElementById('btnReadAll');
+            
+            function fetchNotifications() {
+                fetch('/api/NotificationApi')
+                    .then(r => r.json())
+                    .then(res => {
+                        if(res.success) {
+                            updateBadge(res.unreadCount);
+                            renderList(res.data);
+                        }
+                    });
+            }
+            
+            function updateBadge(count) {
+                if(count > 0) {
+                    notifBadge.innerText = count > 99 ? '99+' : count;
+                    notifBadge.style.display = 'block';
+                } else {
+                    notifBadge.style.display = 'none';
+                }
+            }
+            
+            function renderList(items) {
+                if(!items || items.length === 0) {
+                    notifList.innerHTML = '<div class="p-4 text-center text-secondary small">Không có thông báo nào</div>';
+                    return;
+                }
+                notifList.innerHTML = '';
+                items.forEach(item => {
+                    var bg = item.isRead ? '' : 'background: rgba(13, 110, 253, 0.1);';
+                    var fw = item.isRead ? 'text-secondary' : 'text-white fw-bold';
+                    var html = `
+                        <a href="${item.linkUrl || '#'}" class="text-decoration-none d-block p-3 border-bottom border-secondary border-opacity-10 notif-item" style="transition: all 0.2s; ${bg}" data-id="${item.id}" onclick="markRead('${item.id}', this)">
+                            <h6 class="mb-1 ${fw} fs-6">${item.title}</h6>
+                            <p class="mb-1 text-secondary small text-truncate" style="font-size: 0.8rem; white-space: normal;">${item.content}</p>
+                            <small class="text-muted" style="font-size: 0.7rem;">${item.createdAtStr}</small>
+                        </a>
+                    `;
+                    notifList.insertAdjacentHTML('beforeend', html);
+                });
+            }
+            
+            window.markRead = function(id, el) {
+                fetch('/api/NotificationApi/read/' + id, { method: 'POST' });
+                el.style.background = '';
+                el.querySelector('h6').classList.remove('text-white', 'fw-bold');
+                el.querySelector('h6').classList.add('text-secondary');
+                
+                var currentCount = parseInt(notifBadge.innerText) || 0;
+                if (currentCount > 0) {
+                    updateBadge(currentCount - 1);
+                }
+            };
+            
+            btnReadAll.addEventListener('click', function() {
+                fetch('/api/NotificationApi/read-all', { method: 'POST' }).then(() => {
+                    fetchNotifications();
+                });
+            });
+            
+            // SignalR Notification
+            var notifConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+                
+            notifConnection.on("ReceiveNotification", function(dto) {
+                // Re-fetch to update UI
+                fetchNotifications();
+                
+                // Bell animation
+                var bellIcon = document.getElementById('bellIcon').querySelector('i');
+                bellIcon.classList.add('fa-shake');
+                setTimeout(() => bellIcon.classList.remove('fa-shake'), 1000);
+            });
+            
+            notifConnection.start().then(() => {
+                fetchNotifications();
+            }).catch(err => console.error(err));
+        });
+        </text>
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

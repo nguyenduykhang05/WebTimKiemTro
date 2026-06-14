@@ -1,0 +1,74 @@
+@model IEnumerable<SmartRoomFinder.Models.RoomModel>
+
+@{
+    ViewData["Title"] = "Quản Lý Phòng Trọ Của Bạn";
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h3 class="fw-bold"><i class="fa-solid fa-hotel text-info me-2"></i>Phòng Trọ Bạn Đã Đăng</h3>
+    <a class="btn btn-premium" asp-action="Create"><i class="fa-solid fa-plus me-1"></i> Đăng phòng mới</a>
+</div>
+
+<div class="glass-panel p-4 mb-5">
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fa-solid fa-house-circle-exclamation fs-1 text-secondary mb-3"></i>
+            <h5 class="text-secondary">Bạn chưa đăng tin phòng trọ nào.</h5>
+            <a class="btn btn-premium mt-3" asp-action="Create">Đăng tin ngay</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-secondary">
+                        <th>Hình ảnh</th>
+                        <th>Tiêu đề phòng</th>
+                        <th>Khu vực</th>
+                        <th>Giá thuê</th>
+                        <th>Lượt xem</th>
+                        <th>Liên hệ</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var room in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@room.MainImageUrl" class="rounded" style="width: 70px; height: 50px; object-fit: cover;" alt="Cover" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=70&q=80'">
+                            </td>
+                            <td>
+                                <div class="fw-bold text-truncate" style="max-width: 250px;">@room.Title</div>
+                                <span class="small text-secondary">@room.Type.ToString() - @room.Area m²</span>
+                            </td>
+                            <td>@room.Location</td>
+                            <td><span class="text-info fw-bold">@room.Price.ToString("#,##0") đ</span></td>
+                            <td><i class="fa-solid fa-eye text-secondary me-1"></i> @room.ViewCount</td>
+                            <td><i class="fa-solid fa-phone text-secondary me-1"></i> @room.ContactCount</td>
+                            <td>
+                                <span class="badge @(room.ApprovalStatus switch {
+                                    SmartRoomFinder.Models.RoomStatus.Verified => "badge-verified",
+                                    SmartRoomFinder.Models.RoomStatus.Pending => "badge-pending",
+                                    SmartRoomFinder.Models.RoomStatus.NeedsInfo => "bg-warning bg-opacity-25 text-warning border border-warning",
+                                    _ => "badge-rejected"
+                                })">
+                                    @room.ApprovalStatus.ToString()
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a class="btn btn-premium-secondary btn-sm" asp-controller="Home" asp-action="Detail" asp-route-id="@room.Id"><i class="fa-solid fa-circle-info"></i> Xem</a>
+                                    <a class="btn btn-premium btn-sm" asp-action="Edit" asp-route-id="@room.Id"><i class="fa-solid fa-pen-to-square"></i> Sửa</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

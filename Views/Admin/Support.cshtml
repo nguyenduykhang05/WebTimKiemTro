@@ -1,0 +1,176 @@
+@model IEnumerable<SmartRoomFinder.Models.SupportTicketModel>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Hỗ trợ & Phản hồi";
+    ViewData["Subtitle"] = "Quản lý các yêu cầu hỗ trợ và khiếu nại từ người dùng.";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="admin-split-layout">
+    <!-- Left: Ticket List -->
+    <div class="admin-split-left admin-card" style="border-top: 4px solid var(--admin-primary); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <h5 class="fw-bold m-0" style="color: var(--admin-primary);"><i class="fa-solid fa-inbox me-2"></i>Danh sách yêu cầu</h5>
+            <span class="badge rounded-pill px-3 py-2" style="background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary)); font-size: 0.9rem;">
+                @Model.Count(t => t.Status == "Pending") yêu cầu mới
+            </span>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="admin-table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"></th>
+                        <th>Khách hàng</th>
+                        <th style="width: 40%;">Nội dung hỗ trợ</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="120" style="opacity: 0.5;" class="mb-3" />
+                                <h6 class="text-muted fw-bold">Tuyệt vời! Không có yêu cầu hỗ trợ nào.</h6>
+                                <p class="small text-muted mb-0">Hệ thống đang hoạt động ổn định và khách hàng đang hài lòng.</p>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var ticket in Model)
+                    {
+                        <tr style="cursor: pointer;" onclick="showTicketDetail('@ticket.Id', '@ticket.UserEmail', '@ticket.Subject', '@System.Web.HttpUtility.JavaScriptStringEncode(ticket.Message)', '@ticket.Status', '@ticket.CreatedAt.ToString("dd/MM/yyyy HH:mm")', '@System.Web.HttpUtility.JavaScriptStringEncode(ticket.AdminReply ?? "")')">
+                            <td><input type="checkbox" class="form-check-input shadow-none"></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-weight: bold;">
+                                        @ticket.UserEmail.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <span class="fw-bold">@ticket.UserEmail</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark text-truncate" style="max-width: 250px;">@ticket.Subject</div>
+                                <div class="text-muted small text-truncate" style="max-width: 250px;">@ticket.Message</div>
+                            </td>
+                            <td>
+                                @if (ticket.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark border border-warning px-3 py-2 rounded-pill"><i class="fa-solid fa-clock me-1"></i> Chờ xử lý</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success border border-success px-3 py-2 rounded-pill"><i class="fa-solid fa-check-double me-1"></i> Đã xử lý</span>
+                                }
+                            </td>
+                            <td class="text-muted small fw-medium">@ticket.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right: Ticket Detail -->
+    <div class="admin-split-right" id="ticketDetailPanel" style="display: none;">
+        <div class="admin-card h-100 d-flex flex-column" style="position: sticky; top: 90px; height: calc(100vh - 120px) !important;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0" id="detailSubject">Chi tiết yêu cầu</h5>
+                <button class="btn btn-sm btn-light border" onclick="closeDetails()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="admin-detail-content flex-grow-1 overflow-auto pe-2">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="admin-user-avatar" style="width: 48px; height: 48px; font-size: 1.5rem; background: #e0f2fe; color: #0284c7;" id="detailAvatar">
+                        U
+                    </div>
+                    <div>
+                        <div class="fw-bold" id="detailEmail">user@email.com</div>
+                        <div class="text-muted small" id="detailDate">01/01/2026</div>
+                    </div>
+                    <div class="ms-auto" id="detailStatusBadge">
+                        <!-- badge injected via JS -->
+                    </div>
+                </div>
+                
+                <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Nội dung tin nhắn</h6>
+                <div class="p-3 border rounded mb-4" style="background: #f8fafc;" id="detailMessage">
+                    No message
+                </div>
+
+                <div id="replySection">
+                    <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Phản hồi từ Admin</h6>
+                    <form asp-controller="Admin" asp-action="ReplySupport" method="post">
+                        <input type="hidden" name="id" id="replyTicketId" />
+                        <div class="mb-3">
+                            <textarea class="form-control" name="replyMessage" rows="4" placeholder="Nhập câu trả lời... Gửi email đến người dùng (mô phỏng)" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-admin-primary w-100">
+                            <i class="fa-solid fa-paper-plane me-2"></i> Gửi phản hồi
+                        </button>
+                    </form>
+                </div>
+
+                <div id="resolvedSection" style="display: none;">
+                    <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Đã phản hồi</h6>
+                    <div class="p-3 border rounded border-success bg-white mb-4">
+                        <div class="text-success small mb-2"><i class="fa-solid fa-check-double me-1"></i> Đã gửi email phản hồi</div>
+                        <div id="detailAdminReply" class="text-muted" style="font-size: 0.9rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showTicketDetail(id, email, subject, message, status, date, reply) {
+            document.getElementById('ticketDetailPanel').style.display = 'block';
+            
+            document.getElementById('detailSubject').textContent = subject;
+            document.getElementById('detailEmail').textContent = email;
+            document.getElementById('detailAvatar').textContent = email.substring(0, 1).toUpperCase();
+            document.getElementById('detailDate').textContent = date;
+            document.getElementById('detailMessage').textContent = message;
+            
+            const badgeContainer = document.getElementById('detailStatusBadge');
+            if (status === 'Pending') {
+                badgeContainer.innerHTML = '<span class="admin-badge badge-pending">Chờ xử lý</span>';
+                document.getElementById('replySection').style.display = 'block';
+                document.getElementById('resolvedSection').style.display = 'none';
+                document.getElementById('replyTicketId').value = id;
+            } else {
+                badgeContainer.innerHTML = '<span class="admin-badge badge-verified">Đã xử lý</span>';
+                document.getElementById('replySection').style.display = 'none';
+                document.getElementById('resolvedSection').style.display = 'block';
+                document.getElementById('detailAdminReply').textContent = reply;
+            }
+            
+            // Highlight selected row
+            document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                row.classList.remove('selected');
+                row.querySelector('input[type="checkbox"]').checked = false;
+            });
+            const row = event.currentTarget;
+            row.classList.add('selected');
+            row.querySelector('input[type="checkbox"]').checked = true;
+        }
+        
+        function closeDetails() {
+            document.getElementById('ticketDetailPanel').style.display = 'none';
+            document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                row.classList.remove('selected');
+                row.querySelector('input[type="checkbox"]').checked = false;
+            });
+        }
+    </script>
+}

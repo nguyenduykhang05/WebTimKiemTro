@@ -1,0 +1,493 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Tin Nhắn";
+    var chats = ViewData["Chats"] as IEnumerable<SmartRoomFinder.Models.ChatModel> ?? new List<SmartRoomFinder.Models.ChatModel>();
+    var currentUserId = ViewData["CurrentUserId"] as string;
+    var selectedChat = ViewData["SelectedChat"] as SmartRoomFinder.Models.ChatModel;
+    var messages = ViewData["Messages"] as IEnumerable<SmartRoomFinder.Models.MessageModel> ?? new List<SmartRoomFinder.Models.MessageModel>();
+}
+
+<style>
+    body {
+        background-color: #f4f5f7;
+    }
+    .chat-layout {
+        display: flex;
+        height: calc(100vh - 70px);
+        margin: 0;
+        background: #fff;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    /* LEFT PANE */
+    .chat-sidebar {
+        width: 340px;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        flex-shrink: 0;
+    }
+    .chat-sidebar-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .search-box {
+        background: #f4f5f7;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    .search-box:focus-within {
+        border-color: #ff9900;
+        background: #fff;
+    }
+    .search-box input {
+        border: none;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        font-size: 0.9rem;
+    }
+    .filter-pills {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        overflow-x: auto;
+    }
+    .filter-pills::-webkit-scrollbar { display: none; }
+    .pill {
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        color: #555;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .pill.active {
+        border-color: #ff9900;
+        color: #ff9900;
+        font-weight: bold;
+    }
+    .chat-list {
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+    .chat-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+    }
+    .chat-item:hover, .chat-item.active {
+        background-color: #fafafa;
+    }
+    .chat-item.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: #ff9900;
+    }
+    
+    /* RIGHT PANE */
+    .chat-main {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background: #f4f5f7;
+        position: relative;
+    }
+    .chat-header {
+        height: 65px;
+        background: #fff;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .context-card {
+        background: #fff;
+        margin: 1rem 1.5rem;
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e0e0e0;
+    }
+    
+    .chat-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* MESSAGES */
+    .msg-wrapper {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1.25rem;
+        max-width: 75%;
+    }
+    .msg-time {
+        font-size: 0.7rem;
+        color: #888;
+        margin-bottom: 4px;
+    }
+    .msg-bubble {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    .msg-mine-wrapper {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+    .msg-mine {
+        background-color: #fff;
+        color: #333;
+        border: 1px solid #e0e0e0;
+        border-bottom-right-radius: 0;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .msg-theirs-wrapper {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+    .msg-theirs {
+        background-color: #fff;
+        color: #333;
+        border-bottom-left-radius: 0;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    /* INPUT AREA */
+    .input-section {
+        background: #fff;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e0e0e0;
+    }
+    .quick-replies {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.75rem;
+    }
+    .quick-replies::-webkit-scrollbar { display: none; }
+    .quick-reply-btn {
+        border: 1px solid #e0e0e0;
+        background: #fff;
+        color: #555;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .quick-reply-btn:hover {
+        background: #f9f9f9;
+        border-color: #ccc;
+    }
+    
+    .chat-input-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f4f5f7;
+        border-radius: 8px;
+        padding: 0.5rem;
+    }
+    .chat-input-box {
+        border: none;
+        background: transparent;
+        outline: none;
+        flex-grow: 1;
+        padding: 0.5rem;
+        font-size: 0.95rem;
+    }
+    .btn-send {
+        background: transparent;
+        border: none;
+        color: #ff9900;
+        font-size: 1.25rem;
+        padding: 0 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-send:hover { color: #e68a00; }
+    .icon-action {
+        color: #888;
+        padding: 0.5rem;
+        cursor: pointer;
+        font-size: 1.2rem;
+    }
+    .icon-action:hover { color: #555; }
+</style>
+
+<div class="chat-layout">
+    <!-- LEFT PANE -->
+    <div class="chat-sidebar">
+        <div class="chat-sidebar-header">
+            <h4 class="fw-bold mb-3">Chat</h4>
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass text-muted me-2"></i>
+                <input type="text" placeholder="Nhập 3 ký tự để bắt đầu tìm kiếm">
+                <i class="fa-solid fa-ellipsis-vertical ms-auto text-muted" style="cursor: pointer;"></i>
+            </div>
+            <div class="filter-pills">
+                <div class="pill active">Tất cả</div>
+                <div class="pill">Chưa đọc</div>
+                <div class="pill">Tin rác / Bỏ qua</div>
+            </div>
+        </div>
+        
+        <div class="chat-list">
+            @if (!chats.Any())
+            {
+                <div class="text-center p-4 text-secondary small">
+                    Chưa có cuộc hội thoại nào.
+                </div>
+            }
+            else
+            {
+                @foreach (var chat in chats)
+                {
+                    var isSelected = selectedChat?.Id == chat.Id;
+                    var otherName = currentUserId == chat.OwnerId ? chat.RenterName : chat.OwnerName;
+                    
+                    <a href="@Url.Action("Index", "Chat", new { chatId = chat.Id })" class="chat-item @(isSelected ? "active" : "")">
+                        <div class="position-relative me-3">
+                            <img src="https://i.pravatar.cc/150?u=@otherName" class="rounded-circle object-fit-cover" width="50" height="50" alt="Avatar">
+                            <span class="position-absolute bottom-0 end-0 bg-warning text-white rounded-circle d-flex align-items-center justify-content-center border border-white" style="width: 16px; height: 16px; font-size: 8px;">
+                                <i class="fa-solid fa-check"></i>
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 140px; font-size: 0.95rem;">@otherName</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">@chat.UpdatedAt.ToString("dd/MM")</small>
+                            </div>
+                            <div class="text-truncate mb-1 text-primary small" style="font-size: 0.75rem; max-width: 180px;">
+                                <i class="fa-solid fa-house-chimney me-1"></i>@chat.RoomTitle
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <p class="mb-0 text-secondary text-truncate" style="font-size: 0.85rem; max-width: 180px;">@chat.LastMessage</p>
+                                @if (chat.UpdatedAt > DateTime.UtcNow.AddMinutes(-5) && !isSelected)
+                                {
+                                    <span class="ms-auto bg-danger rounded-circle" style="width: 8px; height: 8px;"></span>
+                                }
+                            </div>
+                        </div>
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- RIGHT PANE -->
+    <div class="chat-main">
+        @if (selectedChat == null)
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-secondary" style="background-color: #fff;">
+                <img src="https://st.chotot.com/storage/chotot-icons/svg/chat-empty.svg" width="300" class="mb-4" />
+                <h6 class="fw-bold text-dark text-center" style="line-height: 1.5;">Mẹo! Chat giúp làm sáng tỏ thêm thông tin,<br/>tăng hiệu quả mua bán</h6>
+            </div>
+        }
+        else
+        {
+            var otherName = currentUserId == selectedChat.OwnerId ? selectedChat.RenterName : selectedChat.OwnerName;
+
+            <!-- Header -->
+            <div class="chat-header">
+                <div class="d-flex align-items-center">
+                    <img src="https://i.pravatar.cc/150?u=@otherName" class="rounded-circle me-3" width="40" height="40" alt="Avatar">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 1rem;">@otherName</h6>
+                        <small id="onlineStatus_@selectedChat.OwnerId" class="text-muted d-flex align-items-center" data-userid="@(currentUserId == selectedChat.OwnerId ? selectedChat.RenterId : selectedChat.OwnerId)">
+                            <i class="fa-solid fa-circle text-success me-1" style="font-size: 6px;"></i> Hoạt động gần đây | <span class="text-primary ms-1"><i class="fa-solid fa-house-chimney me-1"></i>@selectedChat.RoomTitle</span>
+                        </small>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 text-secondary">
+                    <i class="fa-solid fa-tags" style="cursor: pointer;" title="Đánh dấu"></i>
+                    <i class="fa-solid fa-bars" style="cursor: pointer;" title="Tùy chọn"></i>
+                </div>
+            </div>
+
+            <!-- Context Card -->
+            <a href="/Home/Detail/@selectedChat.RoomId" class="text-decoration-none text-dark">
+                <div class="context-card">
+                    <img src="@selectedChat.RoomImageUrl" class="rounded border me-3 object-fit-cover" width="60" height="60" onerror="this.src='https://images.unsplash.com/photo-1522771739844?w=100'">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 text-truncate" style="font-size: 0.95rem; max-width: 400px;">@selectedChat.RoomTitle</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-danger fw-bold small">Thỏa thuận</span>
+                            <span class="text-muted small">Mã tin: @selectedChat.RoomId</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="text-center my-3">
+                    <span class="bg-light border px-3 py-1 rounded-pill text-muted small" style="font-size: 0.75rem;">Bắt đầu cuộc trò chuyện</span>
+                </div>
+
+                @foreach (var msg in messages)
+                {
+                    var isMine = msg.SenderId == currentUserId;
+                    
+                    <div class="msg-wrapper @(isMine ? "msg-mine-wrapper" : "msg-theirs-wrapper")">
+                        <div class="msg-time">@msg.CreatedAt.ToString("HH:mm")</div>
+                        <div class="msg-bubble @(isMine ? "msg-mine" : "msg-theirs")">
+                            @msg.Text
+                        </div>
+                    </div>
+                }
+
+                <div id="typingIndicator" class="msg-wrapper msg-theirs-wrapper" style="display: none;">
+                    <div class="msg-bubble msg-theirs text-muted small py-2 px-3">
+                        <i class="fa-solid fa-circle text-secondary opacity-50" style="font-size: 5px; animation: blink 1s infinite;"></i>
+                        <i class="fa-solid fa-circle text-secondary opacity-50" style="font-size: 5px; animation: blink 1s infinite 0.2s;"></i>
+                        <i class="fa-solid fa-circle text-secondary opacity-50" style="font-size: 5px; animation: blink 1s infinite 0.4s;"></i>
+                    </div>
+                    <style>@@keyframes blink { 50% { opacity: 1; } }</style>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <!-- Quick replies -->
+                <div class="quick-replies">
+                    <div class="quick-reply-btn" onclick="document.getElementById('messageInput').value='Phòng này còn không ạ?';">Phòng này còn không ạ?</div>
+                    <div class="quick-reply-btn" onclick="document.getElementById('messageInput').value='Cho mình xin thêm ảnh video';">Cho mình xin thêm ảnh/video</div>
+                    <div class="quick-reply-btn" onclick="document.getElementById('messageInput').value='Có thể dọn vào luôn được không?';">Có thể dọn vào ngay?</div>
+                    <div class="quick-reply-btn" onclick="document.getElementById('messageInput').value='Điện nước tính giá sao ạ?';">Điện nước tính sao?</div>
+                </div>
+
+                <!-- Input box -->
+                <form id="chatForm" class="chat-input-container">
+                    <input type="hidden" id="chatId" value="@selectedChat.Id" />
+                    <input type="hidden" id="currentUserId" value="@currentUserId" />
+                    
+                    <i class="fa-regular fa-image icon-action"></i>
+                    <i class="fa-solid fa-location-dot icon-action"></i>
+                    
+                    <input type="text" id="messageInput" class="chat-input-box" placeholder="Nhập tin nhắn..." required autocomplete="off" autofocus />
+                    
+                    <button type="submit" id="btnSend" class="btn-send">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var chatMessages = document.getElementById("chatMessages");
+            function scrollToBottom() {
+                if (chatMessages) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }
+            scrollToBottom();
+
+            @if (selectedChat != null)
+            {
+                <text>
+                var chatId = document.getElementById('chatId').value;
+                var currentUserId = document.getElementById('currentUserId').value;
+                var messageInput = document.getElementById("messageInput");
+                var typingIndicator = document.getElementById("typingIndicator");
+                var chatForm = document.getElementById("chatForm");
+                
+                var connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/chatHub")
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on("ReceiveMessage", function (dto) {
+                    var isMine = dto.senderId === currentUserId;
+                    
+                    var wrapperClass = isMine ? "msg-mine-wrapper" : "msg-theirs-wrapper";
+                    var bubbleClass = isMine ? "msg-mine" : "msg-theirs";
+
+                    var msgHtml = `
+                        <div class="msg-wrapper ${wrapperClass}">
+                            <div class="msg-time">${dto.createdAtStr}</div>
+                            <div class="msg-bubble ${bubbleClass}">
+                                ${dto.text}
+                            </div>
+                        </div>
+                    `;
+                    
+                    typingIndicator.insertAdjacentHTML('beforebegin', msgHtml);
+                    scrollToBottom();
+                });
+
+                var typingTimeout;
+                messageInput.addEventListener("input", function() {
+                    connection.invoke("Typing", chatId, true);
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(function() {
+                        connection.invoke("Typing", chatId, false);
+                    }, 1500);
+                });
+
+                connection.on("ReceiveTyping", function (userId, isTyping) {
+                    if(userId !== currentUserId) {
+                        typingIndicator.style.display = isTyping ? "flex" : "none";
+                        if(isTyping) scrollToBottom();
+                    }
+                });
+
+                connection.start().then(function () {
+                    connection.invoke("JoinChat", chatId);
+                }).catch(function (err) {
+                    return console.error(err.toString());
+                });
+
+                chatForm.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    var text = messageInput.value.trim();
+                    if (text === "") return;
+
+                    // Gửi tin nhắn qua SignalR thay vì gọi API Controller
+                    connection.invoke("SendMessage", chatId, text)
+                        .then(function () {
+                            messageInput.value = "";
+                            scrollToBottom();
+                        })
+                        .catch(function (err) {
+                            console.error(err.toString());
+                        });
+                });
+                </text>
+            }
+        });
+    </script>
+}

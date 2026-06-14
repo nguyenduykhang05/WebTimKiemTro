@@ -1,0 +1,75 @@
+@{
+    ViewData["Title"] = "Liên hệ";
+}
+
+<div class="container py-5">
+    <!-- Glow effect -->
+    <div class="position-absolute" style="background: radial-gradient(circle, rgba(13,110,253,0.15) 0%, rgba(0,0,0,0) 70%); width: 600px; height: 600px; top: 0; left: 0; pointer-events: none; z-index: 0;"></div>
+
+    <div class="row g-5 position-relative" style="z-index: 1;">
+        <!-- Thông tin liên hệ -->
+        <div class="col-lg-5">
+            <h1 class="fw-bold mb-3 poppins-title">Liên hệ với <span class="text-primary">SmartRoom</span></h1>
+            <p class="text-secondary mb-5">Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn 24/7. Hãy gửi tin nhắn cho chúng tôi nếu bạn có bất kỳ thắc mắc hay góp ý nào.</p>
+            
+            <div class="glass-panel p-4 mb-4 border border-secondary border-opacity-25" style="border-left: 4px solid var(--bs-primary) !important;">
+                <h5 class="fw-bold"><i class="fa-solid fa-location-dot text-primary me-2"></i>Trụ sở chính</h5>
+                <p class="text-secondary mb-0 small mt-2">475A Điện Biên Phủ, Phường 25<br>Quận Bình Thạnh, TP. Hồ Chí Minh</p>
+            </div>
+
+            <div class="glass-panel p-4 mb-4 border border-secondary border-opacity-25" style="border-left: 4px solid var(--bs-info) !important;">
+                <h5 class="fw-bold"><i class="fa-solid fa-envelope text-info me-2"></i>Email hỗ trợ</h5>
+                <p class="text-secondary mb-0 small mt-2">support@smartroomfinder.vn<br>admin@smartroomfinder.vn</p>
+            </div>
+
+            <div class="glass-panel p-4 border border-secondary border-opacity-25" style="border-left: 4px solid var(--bs-success) !important;">
+                <h5 class="fw-bold"><i class="fa-solid fa-phone-volume text-success me-2"></i>Hotline</h5>
+                <p class="text-secondary mb-0 small mt-2">1900 1234 (KH Cá nhân)<br>1900 5678 (KH Doanh nghiệp/Chủ trọ)</p>
+            </div>
+            
+            <div class="d-flex gap-3 mt-4 fs-4">
+                <a href="#" class="text-primary"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" class="text-info"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#" class="text-danger"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+        </div>
+
+        <!-- Form Liên Hệ -->
+        <div class="col-lg-7">
+            <div class="glass-panel p-5 rounded-4 shadow-lg border border-secondary border-opacity-25 h-100" style="background: rgba(255,255,255,0.02);">
+                <h3 class="fw-bold mb-4">Gửi thông điệp</h3>
+                
+                <form>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Họ và tên</label>
+                            <input type="text" class="form-control form-premium-control" placeholder="Nguyễn Văn A">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Địa chỉ Email</label>
+                            <input type="email" class="form-control form-premium-control" placeholder="nguyenvana@gmail.com">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">Chủ đề</label>
+                            <select class="form-select form-premium-control">
+                                <option>Hỗ trợ kỹ thuật</option>
+                                <option>Báo cáo vi phạm</option>
+                                <option>Hợp tác kinh doanh</option>
+                                <option>Góp ý phát triển</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">Nội dung tin nhắn</label>
+                            <textarea class="form-control form-premium-control" rows="5" placeholder="Nhập nội dung chi tiết..."></textarea>
+                        </div>
+                        <div class="col-12 mt-4 text-end">
+                            <button type="button" class="btn btn-primary px-5 py-3 fw-bold rounded-3" style="box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);" onclick="alert('Cảm ơn bạn đã gửi liên hệ. Chúng tôi sẽ phản hồi trong 24h tới!');">
+                                Gửi Tin Nhắn <i class="fa-solid fa-paper-plane ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

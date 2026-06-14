@@ -1,0 +1,156 @@
+@model SmartRoomFinder.Models.ViewModels.LandlordStatsViewModel
+
+@{
+    ViewData["Title"] = "Dashboard Chủ Trọ";
+    var recentApps = ViewBag.RecentApplications as IEnumerable<SmartRoomFinder.Models.ApplicationModel>;
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+    <div>
+        <h3 class="fw-bold m-0" style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            <i class="fa-solid fa-chart-pie me-2"></i>Tổng Quan Quản Lý
+        </h3>
+        <p class="text-secondary mt-1 mb-0">Theo dõi hiệu quả kinh doanh và số lượng phòng của bạn.</p>
+    </div>
+    <a class="btn btn-premium px-4" asp-action="Create"><i class="fa-solid fa-plus me-2"></i>Đăng tin mới</a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100 position-relative overflow-hidden">
+            <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                <i class="fa-solid fa-house-chimney fa-4x text-primary"></i>
+            </div>
+            <div class="text-secondary fw-bold small text-uppercase mb-2">Tổng số phòng</div>
+            <h2 class="fw-bold mb-0 text-primary">@Model.TotalRooms</h2>
+            <div class="mt-2 small text-secondary">
+                <span class="text-warning fw-bold"><i class="fa-solid fa-clock me-1"></i>@Model.PendingRooms</span> phòng đang chờ duyệt
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100 position-relative overflow-hidden">
+            <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                <i class="fa-solid fa-eye fa-4x text-info"></i>
+            </div>
+            <div class="text-secondary fw-bold small text-uppercase mb-2">Lượt xem (Views)</div>
+            <h2 class="fw-bold mb-0 text-info">@Model.TotalViews</h2>
+            <div class="mt-2 small text-secondary">Tổng lượt xem các bài đăng</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100 position-relative overflow-hidden">
+            <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                <i class="fa-solid fa-phone-volume fa-4x text-success"></i>
+            </div>
+            <div class="text-secondary fw-bold small text-uppercase mb-2">Lượt lấy sđt</div>
+            <h2 class="fw-bold mb-0 text-success">@Model.TotalContacts</h2>
+            <div class="mt-2 small text-secondary">Khách đã nhấn xem số điện thoại</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100 position-relative overflow-hidden" style="border: 1px solid rgba(245, 158, 11, 0.3);">
+            <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                <i class="fa-solid fa-envelope-open-text fa-4x text-warning"></i>
+            </div>
+            <div class="text-warning fw-bold small text-uppercase mb-2">Đơn thuê chờ duyệt</div>
+            <h2 class="fw-bold mb-0 text-warning">@Model.PendingApplications</h2>
+            <div class="mt-2 small">
+                <a asp-action="Applications" class="text-warning text-decoration-none fw-bold">Xem danh sách <i class="fa-solid fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Applications & Quick Actions -->
+<div class="row g-4 mb-5">
+    <!-- Recent Applications -->
+    <div class="col-lg-8">
+        <div class="glass-panel p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-25 pb-3">
+                <h5 class="fw-bold m-0"><i class="fa-solid fa-bell text-warning me-2"></i>Đơn Đăng Ký Mới Nhất</h5>
+                <a asp-action="Applications" class="btn btn-sm btn-premium-secondary">Xem tất cả</a>
+            </div>
+
+            @if (recentApps == null || !recentApps.Any())
+            {
+                <div class="text-center py-4 text-secondary">
+                    <i class="fa-regular fa-folder-open fs-2 mb-2"></i>
+                    <p class="mb-0">Chưa có đơn đăng ký nào gần đây.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-secondary small">
+                                <th>Phòng</th>
+                                <th>Người gửi</th>
+                                <th>Ngày gửi</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var app in recentApps)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-truncate text-info" style="max-width: 200px;">@app.RoomTitle</div>
+                                    </td>
+                                    <td>@app.RenterName</td>
+                                    <td class="text-secondary">@app.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="badge @(app.Status switch {
+                                            "approved" => "badge-verified",
+                                            "rejected" => "badge-rejected",
+                                            _ => "badge-pending"
+                                        })">
+                                            @(app.Status switch {
+                                                "approved" => "Được nhận",
+                                                "rejected" => "Từ chối",
+                                                _ => "Đang chờ"
+                                            })
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="col-lg-4">
+        <div class="glass-panel p-4 h-100">
+            <h5 class="fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-3"><i class="fa-solid fa-bolt text-info me-2"></i>Lối Tắt (Quick Links)</h5>
+            
+            <div class="d-grid gap-3">
+                <a asp-action="Manage" class="btn btn-premium-secondary text-start py-3 d-flex align-items-center">
+                    <div class="bg-dark bg-opacity-50 p-2 rounded me-3 text-info"><i class="fa-solid fa-list-check fa-fw"></i></div>
+                    <div>
+                        <div class="fw-bold">Quản lý phòng</div>
+                        <div class="small text-secondary">Xem, sửa, xóa các phòng đang cho thuê</div>
+                    </div>
+                </a>
+                <a asp-action="Applications" class="btn btn-premium-secondary text-start py-3 d-flex align-items-center">
+                    <div class="bg-dark bg-opacity-50 p-2 rounded me-3 text-warning"><i class="fa-solid fa-file-signature fa-fw"></i></div>
+                    <div>
+                        <div class="fw-bold">Duyệt đơn ứng tuyển</div>
+                        <div class="small text-secondary">Quản lý các yêu cầu thuê từ khách</div>
+                    </div>
+                </a>
+                <a asp-controller="Profile" asp-action="Index" class="btn btn-premium-secondary text-start py-3 d-flex align-items-center">
+                    <div class="bg-dark bg-opacity-50 p-2 rounded me-3 text-success"><i class="fa-solid fa-user-pen fa-fw"></i></div>
+                    <div>
+                        <div class="fw-bold">Hồ sơ của bạn</div>
+                        <div class="small text-secondary">Cập nhật thông tin cá nhân và SĐT liên hệ</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

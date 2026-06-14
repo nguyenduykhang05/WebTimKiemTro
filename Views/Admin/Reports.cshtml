@@ -1,0 +1,381 @@
+@model IEnumerable<SmartRoomFinder.Models.ReportModel>
+@using SmartRoomFinder.Models
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Báo cáo vi phạm";
+    ViewData["Subtitle"] = "Quản lý và xử lý các báo cáo về phòng trọ và người dùng từ cộng đồng.";
+    
+    var totalReports = Model.Count();
+    var pending = Model.Count(r => r.Status == "pending" || r.Status == "Mới");
+    var processing = 0;
+    var resolved = Model.Count(r => r.Status == "resolved" || r.Status == "Đã giải quyết");
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Stats Row -->
+<div class="row g-4 mb-4">
+    <!-- Tổng báo cáo -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-primary">
+                    <i class="fa-solid fa-chart-simple"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Tổng báo cáo</div>
+            <h3 class="fw-bold mb-2">@totalReports</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-success me-1"><i class="fa-solid fa-arrow-up"></i></div>
+                <span class="text-success fw-bold me-1">so với tuần trước</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mới -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-warning">
+                    <i class="fa-solid fa-folder"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Mới</div>
+            <h3 class="fw-bold mb-2">@pending</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-danger me-1"><i class="fa-solid fa-arrow-down"></i></div>
+                <span class="text-danger fw-bold me-1">Chưa xử lý</span> so với tuần trước
+            </div>
+        </div>
+    </div>
+    
+    <!-- Đang xử lý -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-purple">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Đang xử lý</div>
+            <h3 class="fw-bold mb-2">@processing</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-success me-1"><i class="fa-solid fa-arrow-up"></i></div>
+                <span class="text-success fw-bold me-1">so với tuần trước</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Đã giải quyết -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-success">
+                    <i class="fa-regular fa-circle-check"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Đã giải quyết</div>
+            <h3 class="fw-bold mb-2">@resolved</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-success me-1"><i class="fa-solid fa-arrow-up"></i></div>
+                <span class="text-success fw-bold me-1">+Đã xong</span> so với tuần trước
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-filter-bar">
+    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+        <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Loại báo cáo</span>
+        <select class="admin-filter-select">
+            <option>Tất cả</option>
+            <option>Lừa đảo</option>
+            <option>Thông tin sai lệch</option>
+            <option>Sai giá</option>
+            <option>Lý do khác</option>
+        </select>
+    </div>
+    
+    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+        <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Trạng thái</span>
+        <select class="admin-filter-select">
+            <option>Tất cả</option>
+            <option>Mới</option>
+            <option>Đã giải quyết</option>
+        </select>
+    </div>
+    
+    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+        <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Mức độ ưu tiên</span>
+        <select class="admin-filter-select">
+            <option>Tất cả</option>
+            <option>Cao</option>
+            <option>Trung bình</option>
+        </select>
+    </div>
+    
+    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+        <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Thời gian</span>
+        <select class="admin-filter-select">
+            <option>30 ngày qua</option>
+        </select>
+    </div>
+</div>
+
+<div class="admin-split-layout">
+    <!-- Left: List -->
+    <div class="admin-split-left admin-card p-0 overflow-hidden">
+        <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+            <h6 class="fw-bold m-0">Danh sách báo cáo</h6>
+            <div class="text-muted small">
+                Tổng: @Model.Count() báo cáo <i class="fa-solid fa-arrow-rotate-right ms-2" style="cursor: pointer;"></i>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="admin-table m-0">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th style="width: 40px;" class="ps-4"></th>
+                        <th>Mã báo cáo</th>
+                        <th>Nội dung bị báo cáo</th>
+                        <th>Người gửi</th>
+                        <th>Loại</th>
+                        <th>Ưu tiên</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-5 text-muted">Không có báo cáo vi phạm nào.</td></tr>
+                    }
+                    @foreach (var report in Model)
+                    {
+                        var isResolved = report.Status == "resolved" || report.Status == "Đã giải quyết";
+                        var priority = "Trung bình";
+                        var priorityClass = "badge-pending";
+                        if(report.Reason == "Lừa đảo" || report.Reason == "Lừa đảo chiếm đoạt tài sản") {
+                            priority = "Cao";
+                            priorityClass = "badge-danger";
+                        }
+                        
+                        <tr onclick="showReportDetails('@report.Id')">
+                            <td class="ps-4"><input type="checkbox" class="admin-checkbox" /></td>
+                            <td>
+                                <div class="fw-bold text-primary" style="font-size: 0.85rem;">
+                                    @report.Id.Substring(0, Math.Min(10, report.Id.Length))
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark" style="font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Phòng SRF-@report.RoomId.Substring(0, Math.Min(5, report.RoomId.Length)).ToUpper()</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">Lý do: @report.Reason</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="admin-user-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #e0f2fe; color: #0284c7;">
+                                        U
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" style="font-size: 0.8rem;">User-@report.ReporterId.Substring(0, Math.Min(4, report.ReporterId.Length))</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Thành viên</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="admin-badge badge-role-renter" style="background: #f1f5f9; color: #0284c7;">@report.Reason</span>
+                            </td>
+                            <td>
+                                <span class="admin-badge @priorityClass bg-opacity-10 text-opacity-75">@priority</span>
+                            </td>
+                            <td>
+                                @if (isResolved)
+                                {
+                                    <span class="admin-badge badge-success">Đã giải quyết</span>
+                                }
+                                else
+                                {
+                                    <span class="admin-badge badge-role-landlord" style="background: #fdf4ff; color: #c026d3;">Mới</span>
+                                }
+                            </td>
+                            <td><span class="text-muted" style="font-size: 0.85rem;">@((DateTime.Now - report.CreatedAt).Days) ngày trước</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="d-flex justify-content-center p-3 border-top align-items-center">
+            <div class="d-flex gap-2 align-items-center text-muted" style="font-size: 0.85rem;">
+                <span>Hiển thị</span>
+                <select class="admin-filter-select py-1 px-2" style="border-radius: 6px;">
+                    <option>10</option>
+                </select>
+                <span>trên mỗi trang</span>
+                <span class="ms-3">Tổng: @Model.Count()</span>
+                <div class="d-flex gap-1 ms-3">
+                    <button class="btn btn-sm btn-light text-muted border-0"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-primary text-white" style="width: 32px; border-radius: 6px;">1</button>
+                    <button class="btn btn-sm btn-light text-muted border-0"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right: Detail Panel -->
+    <div class="admin-split-right admin-detail-panel" id="reportDetailPanel" style="display: none;">
+        @foreach (var report in Model)
+        {
+            var isResolved = report.Status == "resolved" || report.Status == "Đã giải quyết";
+            
+            <div id="detail-@report.Id" class="report-detail-content h-100 d-flex flex-column" style="display: none;">
+                <div class="admin-detail-header">
+                    <h6 class="fw-bold m-0">Chi tiết báo cáo</h6>
+                    <i class="fa-solid fa-xmark text-muted fs-5" style="cursor: pointer;" onclick="closeDetails()"></i>
+                </div>
+                
+                <div class="admin-detail-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="fw-bold text-dark text-break m-0" style="max-width: 220px;">@report.Id.Substring(0, Math.Min(20, report.Id.Length))...</h5>
+                        @if (isResolved)
+                        {
+                            <span class="admin-badge badge-success">Đã giải quyết</span>
+                        }
+                        else
+                        {
+                            <span class="admin-badge badge-role-landlord" style="background: #fdf4ff; color: #c026d3;">Mới</span>
+                        }
+                    </div>
+                    <div class="text-muted small mb-4">
+                        Được tạo: @report.CreatedAt.ToString("dd/MM/yyyy HH:mm") <span class="ms-2">@((DateTime.Now - report.CreatedAt).Days) ngày trước</span>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-2">Mô tả báo cáo</h6>
+                    <p class="text-muted mb-4" style="font-size: 0.85rem;">Lý do: @report.Reason<br/>@(string.IsNullOrEmpty(report.Description) ? "Không có nội dung chi tiết." : report.Description)</p>
+                    
+                    <h6 class="fw-bold mb-3">Bài đăng liên quan</h6>
+                    <div class="border rounded-3 p-2 d-flex gap-3 align-items-center mb-4 position-relative hover-shadow transition">
+                        <div style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; background: #f1f5f9; flex-shrink: 0;">
+                            <i class="fa-solid fa-image text-muted d-flex justify-content-center align-items-center h-100 fs-3"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Phòng SRF-@report.RoomId.Substring(0, Math.Min(5, report.RoomId.Length)).ToUpper()</div>
+                            <div class="text-muted mt-1" style="font-size: 0.7rem;">Mã phòng: @report.RoomId.Substring(0, Math.Min(8, report.RoomId.Length)).ToUpper()</div>
+                        </div>
+                        <a href="/Rooms/Details/@report.RoomId" target="_blank" class="btn btn-light btn-sm text-primary border-0 me-2">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3">Người gửi báo cáo</h6>
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="admin-user-avatar" style="width: 40px; height: 40px; font-size: 1.2rem; background: var(--admin-primary); color: white;">
+                            U
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">User-@report.ReporterId.Substring(0, Math.Min(4, report.ReporterId.Length))</div>
+                            <div class="text-muted small">@report.ReporterId</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold" style="font-size: 0.8rem;">1 bài đăng</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">Thành viên từ @DateTime.Now.Year</div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3">Lịch sử xử lý</h6>
+                    <div class="position-relative ps-3 ms-2 border-start border-primary border-2 pb-2">
+                        <div class="position-absolute" style="left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--admin-primary);"></div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="text-muted" style="font-size: 0.75rem;">@report.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                <div class="fw-bold text-primary mt-1" style="font-size: 0.85rem;">Báo cáo được tạo</div>
+                            </div>
+                            <span class="text-muted small">Hệ thống</span>
+                        </div>
+                    </div>
+                    @if (isResolved)
+                    {
+                        <div class="position-relative ps-3 ms-2 border-start border-success border-2 pb-0 mt-3">
+                            <div class="position-absolute" style="left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--admin-success);"></div>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Đã giải quyết</div>
+                                    <div class="fw-bold text-success mt-1" style="font-size: 0.85rem;">Quản trị viên đã đóng báo cáo</div>
+                                </div>
+                                <span class="text-muted small">Admin</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <div class="admin-detail-footer bg-white border-top flex-row pb-4 pt-3">
+                    <form asp-controller="Admin" asp-action="HideReportedRoom" method="post" class="flex-grow-1">
+                        <input type="hidden" name="id" value="@report.Id" />
+                        <button type="submit" class="btn btn-admin-danger w-100 d-flex justify-content-center align-items-center gap-2">
+                            <i class="fa-solid fa-eye-slash"></i> Ẩn bài
+                        </button>
+                    </form>
+                    
+                    <form asp-controller="Admin" asp-action="ResolveReport" method="post" class="flex-grow-1">
+                        <input type="hidden" name="id" value="@report.Id" />
+                        <button type="submit" class="btn btn-light border w-100 d-flex justify-content-center align-items-center gap-2 fw-bold text-muted">
+                            <i class="fa-solid fa-xmark"></i> Bỏ qua
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showReportDetails(reportId) {
+            document.querySelectorAll('.report-detail-content').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+            
+            document.getElementById('reportDetailPanel').style.display = 'flex';
+            
+            const detailEl = document.getElementById('detail-' + reportId);
+            if (detailEl) {
+                detailEl.style.setProperty('display', 'flex', 'important');
+            }
+            
+            document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                row.classList.remove('selected');
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if(checkbox) checkbox.checked = false;
+            });
+            
+            const row = event.currentTarget;
+            row.classList.add('selected');
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if(checkbox) checkbox.checked = true;
+        }
+        
+        function closeDetails() {
+            document.getElementById('reportDetailPanel').style.display = 'none';
+            document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                row.classList.remove('selected');
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if(checkbox) checkbox.checked = false;
+            });
+        }
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            const firstRow = document.querySelector('.admin-table tbody tr');
+            if (firstRow && firstRow.getAttribute('onclick')) {
+                firstRow.click();
+            }
+        });
+    </script>
+}

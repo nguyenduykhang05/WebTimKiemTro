@@ -1,0 +1,84 @@
+@model SmartRoomFinder.Models.UserModel
+
+@{
+    ViewData["Title"] = "Chỉnh sửa hồ sơ";
+}
+
+<div class="row mt-4 mb-5">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-pen text-primary me-2"></i>Cập nhật hồ sơ cá nhân</h3>
+            <a class="btn btn-premium-secondary btn-sm" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i> Quay lại</a>
+        </div>
+
+        <div class="glass-panel p-5 position-relative overflow-hidden">
+            <!-- Glow background effect -->
+            <div class="position-absolute" style="background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(0,0,0,0) 70%); width: 400px; height: 400px; top: -100px; right: -100px; pointer-events: none; z-index: 0;"></div>
+
+            <form asp-action="Edit" method="post" class="position-relative" style="z-index: 1;">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="Email" />
+                <input type="hidden" asp-for="Role" />
+                
+                <div class="row mb-4 align-items-center">
+                    <div class="col-auto">
+                        <img src="@Model.ProfileImageUrl" id="avatarPreview" class="rounded-circle border border-primary border-2 shadow" style="width: 100px; height: 100px; object-fit: cover;" alt="Avatar" onerror="this.src='https://i.pravatar.cc/120?u=@Model.Email'">
+                    </div>
+                    <div class="col">
+                        <label class="form-label text-secondary small fw-bold">URL Ảnh đại diện</label>
+                        <input asp-for="ProfileImageUrl" class="form-control form-premium-control" id="avatarInput" placeholder="https://..." oninput="document.getElementById('avatarPreview').src = this.value;" />
+                        <small class="text-muted" style="font-size: 0.75rem;">Nhập URL hình ảnh hợp lệ để thay đổi ảnh đại diện.</small>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="fa-solid fa-user"></i></span>
+                            <input asp-for="Name" class="form-control form-premium-control border-start-0" required placeholder="Nhập họ và tên..." />
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Số điện thoại liên hệ</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="fa-solid fa-phone"></i></span>
+                            <input asp-for="PhoneNumber" class="form-control form-premium-control border-start-0" placeholder="09xxxx..." />
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary small fw-bold">Địa chỉ / Khu vực <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="fa-solid fa-location-dot"></i></span>
+                            <input asp-for="Location" class="form-control form-premium-control border-start-0" required placeholder="VD: Quận 7, TP.HCM" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Email (Không thể đổi)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-end-0 text-secondary"><i class="fa-solid fa-envelope"></i></span>
+                            <input class="form-control bg-dark border-start-0 text-secondary" value="@Model.Email" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Vai trò</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-end-0 text-secondary"><i class="fa-solid fa-id-badge"></i></span>
+                            <input class="form-control bg-dark border-start-0 text-secondary" value="@Model.Role.ToString()" disabled />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-5">
+                    <button type="submit" class="btn btn-primary px-5 py-2 fw-bold" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

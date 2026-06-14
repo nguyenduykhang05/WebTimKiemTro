@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Chọn vai trò";
+}
+
+<div class="auth-container glass-panel text-center">
+    <h3 class="fw-bold mb-3" style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Chọn Vai Trò Của Bạn
+    </h3>
+    <p class="text-secondary small mb-4">Vui lòng chọn vai trò bạn muốn sử dụng để hệ thống điều hướng giao diện phù hợp.</p>
+
+    <form asp-controller="Auth" asp-action="ChooseRole" method="post">
+        <div class="d-flex flex-column gap-3 mb-4">
+            <button type="submit" name="role" value="Renter" class="btn btn-premium-secondary py-3 d-flex align-items-center justify-content-center">
+                <i class="fa-solid fa-user-tie me-2 fs-5 text-info"></i>
+                <span class="fw-bold">Tôi là Người đi thuê phòng (Renter)</span>
+            </button>
+            <button type="submit" name="role" value="Landlord" class="btn btn-premium-secondary py-3 d-flex align-items-center justify-content-center">
+                <i class="fa-solid fa-house-user me-2 fs-5 text-warning"></i>
+                <span class="fw-bold">Tôi là Chủ trọ / Cho thuê (Landlord)</span>
+            </button>
+            @if (User.IsInRole("Admin"))
+            {
+                <button type="submit" name="role" value="Admin" class="btn btn-premium-secondary py-3 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-screwdriver-wrench me-2 fs-5 text-danger"></i>
+                    <span class="fw-bold">Tôi là Admin quản lý (Admin)</span>
+                </button>
+            }
+        </div>
+    </form>
+</div>

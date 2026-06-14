@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = "Đăng Nhập";
+}
+
+<div class="auth-container glass-panel animate-fade-in" style="max-width: 480px; margin: 80px auto;">
+    <h3 class="text-center fw-bold mb-4 poppins-title">
+        Đăng Nhập
+    </h3>
+
+    <form asp-controller="Auth" asp-action="Login" method="post" id="loginForm">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success small py-2 mb-3">@TempData["SuccessMessage"]</div>
+        }
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold">Email đăng nhập</label>
+            <input type="email" name="email" id="emailInput" class="form-control form-premium-control" placeholder="example@domain.com" required />
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label text-secondary small fw-bold">Mật khẩu</label>
+            <input type="password" name="password" id="passwordInput" class="form-control form-premium-control" placeholder="••••••••" value="123456" required />
+            <div class="text-end mt-2">
+                <a asp-action="ForgotPassword" class="text-info small text-decoration-none fw-bold">Quên mật khẩu?</a>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-premium w-100 py-3 fw-bold mb-3">Đăng Nhập</button>
+        
+        <p class="text-center small text-secondary">
+            Chưa có tài khoản? <a asp-action="Register" class="text-info text-decoration-none fw-bold">Đăng ký ngay</a>
+        </p>
+    </form>
+
+    <!-- Nút đăng nhập nhanh thông minh -->
+    <div class="mt-4 pt-4 border-top border-light">
+        <h6 class="text-warning fw-bold small mb-3"><i class="fa-solid fa-bolt me-1"></i> Đăng nhập nhanh tài khoản thử nghiệm:</h6>
+        <div class="d-flex flex-column gap-2">
+            <button class="btn btn-premium-secondary btn-sm py-2 text-start d-flex align-items-center justify-content-between" onclick="quickLogin('vana@example.com')">
+                <span><i class="fa-solid fa-user-tie text-info me-2"></i>Người thuê: <strong>vana@example.com</strong></span>
+                <i class="fa-solid fa-chevron-right text-muted small"></i>
+            </button>
+            <button class="btn btn-premium-secondary btn-sm py-2 text-start d-flex align-items-center justify-content-between" onclick="quickLogin('vanc@example.com')">
+                <span><i class="fa-solid fa-house-user text-warning me-2"></i>Chủ trọ: <strong>vanc@example.com</strong></span>
+                <i class="fa-solid fa-chevron-right text-muted small"></i>
+            </button>
+            <button class="btn btn-premium-secondary btn-sm py-2 text-start d-flex align-items-center justify-content-between" onclick="quickLogin('admin@example.com')">
+                <span><i class="fa-solid fa-user-shield text-danger me-2"></i>Quản trị: <strong>admin@example.com</strong></span>
+                <i class="fa-solid fa-chevron-right text-muted small"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function quickLogin(email) {
+        document.getElementById('emailInput').value = email;
+        document.getElementById('passwordInput').value = '123456';
+        document.getElementById('loginForm').submit();
+    }
+</script>

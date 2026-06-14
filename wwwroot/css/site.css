@@ -1,0 +1,539 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --primary-navy: #0F172A;
+    --dark-blue-bg: #0B0F19;
+    --accent-blue: #2563EB;
+    --accent-blue-hover: #1D4ED8;
+    --accent-gold: #F59E0B;
+    --bg-white: #FFFFFF;
+    --bg-light-gray: #F8FAFC;
+    --border-gray: #E2E8F0;
+    --text-primary: #1E293B;
+    --text-secondary: #64748B;
+    
+    --radius-premium: 25px;
+    --radius-md: 16px;
+    --shadow-premium: 0 10px 40px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.12);
+    --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+    background-color: var(--bg-white);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding-bottom: 40px;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .poppins-title {
+    font-family: 'Poppins', sans-serif;
+    color: var(--primary-navy);
+    font-weight: 700;
+}
+
+/* 1. Header Navigation Bar (Dark Theme) */
+.navbar-custom {
+    background: var(--dark-blue-bg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 18px 0;
+    transition: var(--transition-smooth);
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: #FFFFFF !important;
+    letter-spacing: -0.5px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.navbar-brand span {
+    color: var(--accent-gold);
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 8px 16px !important;
+    border-radius: 20px;
+    transition: var(--transition-smooth);
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-login-header {
+    color: #FFFFFF !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 8px 20px;
+    transition: var(--transition-smooth);
+}
+
+.btn-login-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #FFFFFF;
+}
+
+.btn-register-header {
+    background: var(--accent-gold);
+    color: var(--primary-navy) !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 24px;
+    transition: var(--transition-smooth);
+}
+
+.btn-register-header:hover {
+    background: #E08E06;
+    transform: translateY(-1px);
+}
+
+/* 2. Hero Banner Section (Premium Dark Style) */
+.hero-section-premium {
+    background: radial-gradient(circle at 80% 30%, rgba(37, 99, 235, 0.15) 0%, rgba(11, 15, 25, 0.95) 70%), url('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80') center/cover;
+    border-radius: 0;
+    padding: 100px 0 140px 0;
+    color: #FFFFFF;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hero-section-premium h1 {
+    color: #FFFFFF;
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -1px;
+}
+
+.hero-subtitle {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.benefit-tag {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 30px;
+    padding: 10px 20px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-right: 15px;
+    margin-bottom: 10px;
+}
+
+.benefit-tag i {
+    color: var(--accent-gold);
+}
+
+/* 3. Floating Search Bar Overlay (Airbnb Style) */
+.search-bar-floating-container {
+    margin-top: -65px;
+    position: relative;
+    z-index: 100;
+    margin-bottom: 40px;
+}
+
+.search-bar-floating {
+    background: #FFFFFF;
+    border-radius: 50px;
+    padding: 12px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-gray);
+    display: flex;
+    align-items: center;
+}
+
+.search-bar-field {
+    flex: 1;
+    padding: 8px 24px;
+    border-right: 1px solid var(--border-gray);
+    min-width: 130px;
+}
+
+.search-bar-field:last-of-type {
+    border-right: none;
+}
+
+.search-bar-field label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--primary-navy);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.search-bar-field input, .search-bar-field select {
+    border: none;
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+}
+
+.search-bar-field input::placeholder {
+    color: var(--text-secondary);
+}
+
+.btn-search-premium {
+    background-color: var(--accent-blue);
+    color: #FFFFFF !important;
+    border: none;
+    border-radius: 40px;
+    padding: 16px 36px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    transition: var(--transition-smooth);
+}
+
+.btn-search-premium:hover {
+    background-color: var(--accent-blue-hover);
+    transform: scale(1.02);
+}
+
+/* 4. Features Banner Grid */
+.feature-card-premium {
+    background: var(--bg-light-gray);
+    border: 1px solid var(--border-gray);
+    border-radius: 20px;
+    padding: 24px;
+    transition: var(--transition-smooth);
+    height: 100%;
+}
+
+.feature-card-premium:hover {
+    background: var(--bg-white);
+    box-shadow: var(--shadow-premium);
+    transform: translateY(-3px);
+}
+
+.feature-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+}
+
+.icon-purple { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+.icon-blue { background: rgba(37, 99, 235, 0.1); color: #2563EB; }
+.icon-green { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+.icon-orange { background: rgba(249, 115, 22, 0.1); color: #F97316; }
+
+/* 5. Main Layout Catalog + Map Split */
+.content-split-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 30px;
+    margin-top: 50px;
+}
+
+@media (max-width: 992px) {
+    .content-split-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Room Cards Grid (Left side) */
+.room-card-premium {
+    background: #FFFFFF;
+    border: 1px solid var(--border-gray);
+    border-radius: var(--radius-premium);
+    overflow: hidden;
+    transition: var(--transition-smooth);
+    box-shadow: var(--shadow-premium);
+}
+
+.room-card-premium:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(37, 99, 235, 0.15);
+}
+
+.room-card-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    height: 220px;
+}
+
+.room-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.room-card-premium:hover .room-card-img {
+    transform: scale(1.05);
+}
+
+.room-badge-premium {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+.badge-verified-light {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-pending-light {
+    background: rgba(245, 158, 11, 0.15);
+    color: #D97706;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.rating-badge-floating {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    background: rgba(15, 23, 42, 0.75);
+    color: var(--accent-gold);
+    backdrop-filter: blur(5px);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    z-index: 10;
+}
+
+.wishlist-btn-premium {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: var(--transition-smooth);
+    cursor: pointer;
+    z-index: 10;
+}
+
+.wishlist-btn-premium:hover {
+    transform: scale(1.1);
+    color: #EF4444;
+}
+
+.wishlist-btn-premium.active {
+    color: #EF4444;
+}
+
+.price-premium {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--accent-blue);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Map Panel (Right side) */
+.map-sticky-panel {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 150px);
+    border-radius: var(--radius-premium);
+    overflow: hidden;
+    border: 1px solid var(--border-gray);
+    box-shadow: var(--shadow-premium);
+    background: var(--bg-light-gray);
+    display: flex;
+    flex-direction: column;
+}
+
+.map-header {
+    background: #FFFFFF;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-gray);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.map-body-mock {
+    flex-grow: 1;
+    background: radial-gradient(circle, rgba(37,99,235,0.06) 0%, rgba(241,245,249,1) 100%), url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/106.66,10.76,12/400x400?access_token=mock') center/cover;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Map Markers */
+.map-marker-badge {
+    position: absolute;
+    background: var(--accent-blue);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.map-marker-badge:hover {
+    background: var(--accent-gold);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    transform: scale(1.1);
+    z-index: 100;
+}
+
+.map-zoom-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.zoom-btn {
+    width: 36px;
+    height: 36px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--primary-navy);
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.map-layer-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-navy);
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* 6. Stats Bar Banner */
+.stats-banner-premium {
+    background: var(--dark-blue-bg);
+    border-radius: 20px;
+    padding: 30px;
+    color: #FFFFFF;
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.stat-item {
+    text-align: center;
+    padding: 10px 20px;
+}
+
+.stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 2px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.text-gold { color: var(--accent-gold); }
+.text-blue { color: var(--accent-blue); }
+.text-green { color: #10B981; }
+.text-orange { color: #F97316; }
+
+/* Auth UI Premium Styles */
+.auth-container {
+    padding: 40px;
+    border-radius: var(--radius-premium);
+    box-shadow: var(--shadow-premium);
+    background: var(--bg-white);
+}
+
+.btn-premium {
+    background: var(--accent-blue);
+    color: #FFFFFF !important;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    transition: var(--transition-smooth);
+}
+
+.btn-premium:hover {
+    background: var(--accent-blue-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.form-premium-control {
+    border-radius: 10px;
+    border: 1px solid var(--border-gray);
+    padding: 12px 16px;
+    transition: var(--transition-smooth);
+    background-color: transparent;
+}
+
+.form-premium-control:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}

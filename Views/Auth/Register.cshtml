@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Đăng Ký Tài Khoản";
+}
+
+<div class="auth-container glass-panel animate-fade-in" style="max-width: 500px; margin: 80px auto;">
+    <h3 class="text-center fw-bold mb-4 poppins-title">
+        Đăng Ký
+    </h3>
+
+    <form asp-controller="Auth" asp-action="Register" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold">Họ và tên</label>
+            <input type="text" name="name" class="form-control form-premium-control" placeholder="Ví dụ: Nguyễn Văn A" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold">Email</label>
+            <input type="email" name="email" class="form-control form-premium-control" placeholder="example@domain.com" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-bold">Số điện thoại</label>
+            <input type="tel" name="phone" class="form-control form-premium-control" placeholder="0901234567" required />
+        </div>
+        
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label text-secondary small fw-bold">Mật khẩu</label>
+                <input type="password" name="password" class="form-control form-premium-control" placeholder="••••••••" required />
+            </div>
+            <div class="col-6">
+                <label class="form-label text-secondary small fw-bold">Xác nhận MK</label>
+                <input type="password" name="confirmPassword" class="form-control form-premium-control" placeholder="••••••••" required />
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label text-secondary small fw-bold">Bạn đăng ký với vai trò:</label>
+            <select name="role" class="form-select form-premium-control" required>
+                <option value="Renter">Người thuê phòng (Tìm phòng)</option>
+                <option value="Landlord">Chủ trọ (Cho thuê phòng)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-premium w-100 py-3 fw-bold mb-3">Tạo Tài Khoản</button>
+
+        <p class="text-center small text-secondary mb-0">
+            Đã có tài khoản? <a asp-action="Login" class="text-info text-decoration-none fw-bold">Đăng nhập</a>
+        </p>
+    </form>
+</div>

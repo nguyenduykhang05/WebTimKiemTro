@@ -1,0 +1,340 @@
+@model IEnumerable<SmartRoomFinder.Models.UserModel>
+@using SmartRoomFinder.Models
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý người dùng";
+    ViewData["Subtitle"] = "Quản lý tài khoản, phân quyền và khóa tài khoản vi phạm.";
+    
+    var totalUsers = Model.Count();
+    var renters = Model.Count(u => u.Role == UserRole.Renter);
+    var landlords = Model.Count(u => u.Role == UserRole.Landlord);
+    var locked = Model.Count(u => u.IsLocked);
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Stats Row -->
+<div class="row g-4 mb-4">
+    <!-- Tổng người dùng -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-primary">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Tổng người dùng</div>
+            <h3 class="fw-bold mb-2">@totalUsers</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-success me-1"><i class="fa-solid fa-arrow-up"></i></div>
+                <span class="text-success fw-bold me-1">Dữ liệu từ Database</span> so với tuần trước
+            </div>
+        </div>
+    </div>
+    
+    <!-- Người thuê -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-success">
+                    <i class="fa-solid fa-location-dot"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Người thuê</div>
+            <h3 class="fw-bold mb-2">@renters</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-success me-1"><i class="fa-solid fa-arrow-up"></i></div>
+                <span class="text-success fw-bold me-1">Vai trò người thuê</span> so với tuần trước
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chủ trọ -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-purple">
+                    <i class="fa-solid fa-house-user"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Chủ trọ</div>
+            <h3 class="fw-bold mb-2">@landlords</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-success me-1"><i class="fa-solid fa-arrow-up"></i></div>
+                <span class="text-success fw-bold me-1">Vai trò chủ trọ</span> so với tuần trước
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tài khoản bị khóa -->
+    <div class="col-md-3">
+        <div class="admin-card">
+            <div class="d-flex justify-content-between">
+                <div class="admin-stat-icon icon-warning">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+            </div>
+            <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Tài khoản bị khóa</div>
+            <h3 class="fw-bold mb-2">@locked</h3>
+            <div class="small text-muted d-flex align-items-center">
+                <div class="text-success me-1"><i class="fa-solid fa-arrow-up"></i></div>
+                <span class="text-success fw-bold me-1">Trạng thái tạm khóa</span> so với tuần trước
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-filter-bar">
+    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+        <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Vai trò</span>
+        <select class="admin-filter-select">
+            <option>Tất cả</option>
+            <option>Chủ trọ</option>
+            <option>Người thuê</option>
+            <option>Admin</option>
+        </select>
+    </div>
+    
+    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+        <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Trạng thái</span>
+        <select class="admin-filter-select">
+            <option>Tất cả</option>
+            <option>Hoạt động</option>
+            <option>Đã khóa</option>
+        </select>
+    </div>
+    
+    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+        <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Thiết lập tài khoản</span>
+        <select class="admin-filter-select">
+            <option>Tất cả</option>
+            <option>Đã hoàn tất</option>
+            <option>Chưa hoàn tất</option>
+        </select>
+    </div>
+    
+    <div class="admin-search-container" style="flex: 1; min-width: 250px; margin-top: auto;">
+        <i class="fa-solid fa-magnifying-glass admin-search-icon"></i>
+        <input type="text" class="admin-search-input py-2" placeholder="Tìm theo tên..." />
+    </div>
+</div>
+
+<div class="admin-split-layout">
+    <!-- Left: List -->
+    <div class="admin-split-left admin-card p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="admin-table m-0">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th style="width: 40px;" class="ps-4"></th>
+                        <th>Tên</th>
+                        <th>Email</th>
+                        <th>Vai trò</th>
+                        <th>Số điện thoại</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tham gia</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-5 text-muted">Không có người dùng nào.</td></tr>
+                    }
+                    @foreach (var user in Model)
+                    {
+                        <tr onclick="showUserDetails('@user.Id')">
+                            <td class="ps-4"><input type="checkbox" class="admin-checkbox" /></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="admin-user-avatar" style="background: var(--admin-primary); color: white;">
+                                        @(user.Name?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">@user.Name</div>
+                                </div>
+                            </td>
+                            <td><span class="text-muted" style="font-size: 0.85rem;">@user.Email</span></td>
+                            <td>
+                                @if (user.Role == UserRole.Admin) {
+                                    <span class="admin-badge badge-role-admin"><i class="fa-solid fa-shield-halved me-1"></i>Admin</span>
+                                } else if (user.Role == UserRole.Landlord) {
+                                    <span class="admin-badge badge-role-landlord">Chủ trọ</span>
+                                } else {
+                                    <span class="admin-badge badge-role-renter">Người thuê</span>
+                                }
+                            </td>
+                            <td><span class="text-muted" style="font-size: 0.85rem;">@(string.IsNullOrEmpty(user.PhoneNumber) ? "--" : user.PhoneNumber)</span></td>
+                            <td>
+                                @if (user.IsLocked) {
+                                    <span class="admin-badge badge-danger">Bị khóa</span>
+                                } else {
+                                    <span class="admin-badge badge-success">Hoạt động</span>
+                                }
+                            </td>
+                            <td><span class="text-muted" style="font-size: 0.85rem;">@user.CreatedAt.ToString("dd/MM/yyyy")</span></td>
+                            <td class="text-end text-muted pe-4">
+                                <i class="fa-solid fa-ellipsis" style="cursor: pointer;"></i>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="d-flex justify-content-center p-3 border-top align-items-center">
+            <div class="d-flex gap-2 align-items-center text-muted" style="font-size: 0.85rem;">
+                <span>Hiển thị</span>
+                <select class="admin-filter-select py-1 px-2" style="border-radius: 6px;">
+                    <option>10</option>
+                </select>
+                <span>trên mỗi trang</span>
+                <span class="ms-3">Tổng: @Model.Count()</span>
+                <div class="d-flex gap-1 ms-3">
+                    <button class="btn btn-sm btn-light text-muted border-0"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-primary text-white" style="width: 32px; border-radius: 6px;">1</button>
+                    <button class="btn btn-sm btn-light text-muted border-0"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right: Detail Panel -->
+    <div class="admin-split-right admin-detail-panel" id="userDetailPanel" style="display: none;">
+        @foreach (var user in Model)
+        {
+            <div id="detail-@user.Id" class="user-detail-content h-100 d-flex flex-column" style="display: none;">
+                <div class="d-flex justify-content-end p-3">
+                    <i class="fa-solid fa-xmark text-muted fs-5" style="cursor: pointer;" onclick="closeDetails()"></i>
+                </div>
+                
+                <div class="admin-detail-body pt-0 text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center fw-bold text-white shadow-sm" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; background: var(--admin-primary);">
+                        @(user.Name?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
+                    
+                    <h4 class="fw-bold mb-2">@user.Name</h4>
+                    <div class="mb-4">
+                        @if (user.Role == UserRole.Admin) {
+                            <span class="admin-badge badge-role-admin px-3"><i class="fa-solid fa-shield-halved me-1"></i>Admin</span>
+                        } else if (user.Role == UserRole.Landlord) {
+                            <span class="admin-badge badge-role-landlord px-3">Chủ trọ</span>
+                        } else {
+                            <span class="admin-badge badge-role-renter px-3">Người thuê</span>
+                        }
+                    </div>
+                    
+                    <div class="d-flex flex-column align-items-start gap-3 mb-4 text-start p-3 bg-light rounded-3" style="font-size: 0.85rem;">
+                        <div class="d-flex align-items-center text-muted w-100">
+                            <i class="fa-regular fa-envelope me-3 w-15px text-center"></i>
+                            <span class="text-dark fw-medium">@user.Email</span>
+                        </div>
+                        <div class="d-flex align-items-center text-muted w-100">
+                            <i class="fa-solid fa-phone me-3 w-15px text-center"></i>
+                            <span class="text-dark fw-medium">@(string.IsNullOrEmpty(user.PhoneNumber) ? "--" : user.PhoneNumber)</span>
+                        </div>
+                        <div class="d-flex align-items-center text-muted w-100">
+                            <i class="fa-solid fa-location-dot me-3 w-15px text-center"></i>
+                            <span class="text-dark fw-medium">@user.Location</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-start mb-4">
+                        <div class="text-muted fw-bold mb-2" style="font-size: 0.8rem;">Trạng thái thiết lập tài khoản</div>
+                        @if (user.HasSelectedRole) {
+                            <span class="admin-badge badge-success px-3">Đã hoàn tất</span>
+                            <div class="text-muted small mt-2">Đã chọn vai trò và hoàn tất thiết lập</div>
+                        } else {
+                            <span class="admin-badge badge-pending px-3">Chưa hoàn tất</span>
+                            <div class="text-muted small mt-2">Chưa hoàn tất các bước thiết lập ban đầu</div>
+                        }
+                    </div>
+                    
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="flex-grow-1 border rounded-3 p-3 text-start bg-white">
+                            <div class="fw-bold mb-1" style="font-size: 0.85rem;">Bài đăng</div>
+                            <div class="fw-bold fs-4 mb-1">0</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">Chưa thống kê</div>
+                        </div>
+                        <div class="flex-grow-1 border rounded-3 p-3 text-start bg-white">
+                            <div class="fw-bold mb-1" style="font-size: 0.85rem;">Báo cáo nhận</div>
+                            <div class="fw-bold fs-4 mb-1">0</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">Chưa thống kê</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="admin-detail-footer flex-column bg-white border-top-0 pt-0 pb-4">
+                    @if (user.IsLocked) {
+                        <form asp-controller="Admin" asp-action="UnlockUser" method="post">
+                            <input type="hidden" name="id" value="@user.Id" />
+                            <button type="submit" class="btn btn-admin-success w-100 mb-2">
+                                <i class="fa-solid fa-unlock me-2"></i> Mở khóa tài khoản
+                            </button>
+                        </form>
+                    } else {
+                        <form asp-controller="Admin" asp-action="LockUser" method="post">
+                            <input type="hidden" name="id" value="@user.Id" />
+                            <button type="submit" class="btn btn-admin-danger-outline w-100 mb-2">
+                                <i class="fa-solid fa-lock me-2"></i> Khóa tài khoản
+                            </button>
+                        </form>
+                    }
+                    <button class="btn btn-light w-100 text-primary fw-bold" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        Xem chi tiết <i class="fa-solid fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showUserDetails(userId) {
+            document.querySelectorAll('.user-detail-content').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+            
+            document.getElementById('userDetailPanel').style.display = 'flex';
+            
+            const detailEl = document.getElementById('detail-' + userId);
+            if (detailEl) {
+                detailEl.style.setProperty('display', 'flex', 'important');
+            }
+            
+            document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                row.classList.remove('selected');
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if(checkbox) checkbox.checked = false;
+            });
+            
+            const row = event.currentTarget;
+            row.classList.add('selected');
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if(checkbox) checkbox.checked = true;
+        }
+        
+        function closeDetails() {
+            document.getElementById('userDetailPanel').style.display = 'none';
+            document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                row.classList.remove('selected');
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if(checkbox) checkbox.checked = false;
+            });
+        }
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            const firstRow = document.querySelector('.admin-table tbody tr');
+            if (firstRow && firstRow.getAttribute('onclick')) {
+                firstRow.click();
+            }
+        });
+    </script>
+}

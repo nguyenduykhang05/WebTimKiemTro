@@ -1,0 +1,670 @@
+@model SmartRoomFinder.Models.ViewModels.AdminDashboardViewModel
+@using SmartRoomFinder.Models
+
+@{
+    Layout = "_AdminLayout";
+    var currentFilter = ViewBag.CurrentFilter as string;
+    
+    if (string.IsNullOrEmpty(currentFilter)) {
+        ViewData["Title"] = "Dashboard Admin";
+        ViewData["Subtitle"] = "Theo dõi hoạt động nền tảng, duyệt bài đăng và xử lý cảnh báo nhanh chóng.";
+    } else if (currentFilter == "Pending") {
+        ViewData["Title"] = "Duyệt bài đăng phòng";
+        ViewData["Subtitle"] = "Kiểm tra thông tin, giấy tờ và xác nhận chất lượng bài đăng trước khi hiển thị công khai.";
+    }
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (string.IsNullOrEmpty(currentFilter))
+{
+    <!-- DASHBOARD VIEW -->
+    
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <!-- Bài đăng chờ duyệt -->
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex justify-content-between">
+                    <div class="admin-stat-icon icon-warning">
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </div>
+                    <div class="text-danger small"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                </div>
+                <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Bài đăng chờ duyệt</div>
+                <h3 class="fw-bold mb-2">@Model.PendingRoomsCount</h3>
+                <div class="small text-muted d-flex align-items-center">
+                    <div style="width: 12px; height: 3px; background-color: var(--admin-warning); border-radius: 2px; margin-right: 6px;"></div>
+                    so với tuần trước
+                </div>
+            </div>
+        </div>
+        
+        <!-- Người dùng -->
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex justify-content-between">
+                    <div class="admin-stat-icon icon-success">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="text-success small"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                </div>
+                <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Người dùng</div>
+                <h3 class="fw-bold mb-2">@Model.TotalUsers</h3>
+                <div class="small text-muted d-flex align-items-center">
+                    <div style="width: 12px; height: 3px; background-color: var(--admin-success); border-radius: 2px; margin-right: 6px;"></div>
+                    so với tuần trước
+                </div>
+            </div>
+        </div>
+        
+        <!-- Báo cáo mới -->
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex justify-content-between">
+                    <div class="admin-stat-icon icon-primary">
+                        <i class="fa-regular fa-flag"></i>
+                    </div>
+                    <div class="text-danger small"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                </div>
+                <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Báo cáo mới</div>
+                <h3 class="fw-bold mb-2">@Model.TotalReports</h3>
+                <div class="small text-muted d-flex align-items-center">
+                    <div style="width: 12px; height: 3px; background-color: var(--admin-primary); border-radius: 2px; margin-right: 6px;"></div>
+                    so với tuần trước
+                </div>
+            </div>
+        </div>
+        
+        <!-- Yêu cầu hỗ trợ -->
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="d-flex justify-content-between">
+                    <div class="admin-stat-icon icon-purple">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div class="text-success small"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                </div>
+                <div class="text-muted fw-bold mb-1" style="font-size: 0.85rem;">Yêu cầu hỗ trợ</div>
+                <h3 class="fw-bold mb-2">@Model.SupportRequestsCount</h3>
+                <div class="small text-muted d-flex align-items-center">
+                    <div style="width: 12px; height: 3px; background-color: var(--admin-purple); border-radius: 2px; margin-right: 6px;"></div>
+                    so với tuần trước
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-5">
+            <div class="admin-card d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold m-0">Hoạt động trong tuần</h6>
+                    <select class="admin-filter-select py-1 px-2 text-muted" style="font-size: 0.8rem;">
+                        <option>7 ngày qua</option>
+                    </select>
+                </div>
+                <div class="flex-grow-1 position-relative d-flex flex-column justify-content-end" style="min-height: 200px;">
+                    <!-- CSS Mockup for Line Chart -->
+                    <div class="d-flex justify-content-between align-items-end h-100 position-relative pb-4 px-2">
+                        <!-- Y-axis marks -->
+                        <div class="position-absolute w-100 h-100 d-flex flex-column justify-content-between pb-4" style="left: 0; z-index: 1;">
+                            <div style="border-top: 1px dashed #e2e8f0; width: 100%;"></div>
+                            <div style="border-top: 1px dashed #e2e8f0; width: 100%;"></div>
+                            <div style="border-top: 1px dashed #e2e8f0; width: 100%;"></div>
+                            <div style="border-top: 1px solid #cbd5e1; width: 100%;"></div>
+                        </div>
+                        
+                        <!-- Line and points (Mockup) -->
+                        <svg class="position-absolute w-100 h-100" style="left: 0; top: 0; z-index: 2; padding-bottom: 24px; padding-left: 16px; padding-right: 16px;" viewBox="0 0 400 150" preserveAspectRatio="none">
+                            <path d="M 0 140 L 66 140 L 133 140 L 200 140 L 266 140 L 333 140 L 400 140" fill="none" stroke="var(--admin-primary)" stroke-width="2"/>
+                        </svg>
+                        
+                        <div style="z-index: 3; width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--admin-primary); margin-bottom: -6px;"></div>
+                        <div style="z-index: 3; width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--admin-primary); margin-bottom: -6px;"></div>
+                        <div style="z-index: 3; width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--admin-primary); margin-bottom: -6px;"></div>
+                        <div style="z-index: 3; width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--admin-primary); margin-bottom: -6px;"></div>
+                        <div style="z-index: 3; width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--admin-primary); margin-bottom: -6px;"></div>
+                        <div style="z-index: 3; width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--admin-primary); margin-bottom: -6px;"></div>
+                        <div style="z-index: 3; width: 12px; height: 12px; border-radius: 50%; background: white; border: 2px solid var(--admin-primary); margin-bottom: -6px;"></div>
+                    </div>
+                    
+                    <!-- X-axis labels -->
+                    <div class="d-flex justify-content-between px-1 text-muted" style="font-size: 0.7rem;">
+                        <span>7/6</span>
+                        <span>8/6</span>
+                        <span>9/6</span>
+                        <span>10/6</span>
+                        <span>11/6</span>
+                        <span>12/6</span>
+                        <span>13/6</span>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-3 text-muted" style="font-size: 0.8rem;">
+                    <div class="d-flex align-items-center"><div style="width: 8px; height: 8px; border-radius: 50%; background: var(--admin-primary); margin-right: 6px;"></div>Bài đăng mới</div>
+                    <div class="fw-bold text-primary">Tổng: 0 bài đăng</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="admin-card d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold m-0">Tình trạng bài đăng</h6>
+                    <select class="admin-filter-select py-1 px-2 text-muted" style="font-size: 0.8rem;">
+                        <option>Tất cả</option>
+                    </select>
+                </div>
+                <div class="d-flex align-items-center justify-content-between flex-grow-1">
+                    <!-- CSS Donut Chart Mockup -->
+                    @{
+                        int total = Model.VerifiedRoomsCount + Model.PendingRoomsCount + Model.NeedInfoRoomsCount + Model.RejectedRoomsCount;
+                        if(total == 0) total = 1; // Prevent div by 0
+                    }
+                    <div class="position-relative d-flex justify-content-center align-items-center" style="width: 140px; height: 140px;">
+                        <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                            <circle cx="18" cy="18" r="16" fill="none" stroke="#e2e8f0" stroke-width="4"></circle>
+                            <circle cx="18" cy="18" r="16" fill="none" stroke="var(--admin-success)" stroke-width="4" stroke-dasharray="@(Model.VerifiedRoomsCount * 100 / total) 100"></circle>
+                            <circle cx="18" cy="18" r="16" fill="none" stroke="var(--admin-primary)" stroke-width="4" stroke-dasharray="@(Model.NeedInfoRoomsCount * 100 / total) 100" stroke-dashoffset="-@(Model.VerifiedRoomsCount * 100 / total)"></circle>
+                            <circle cx="18" cy="18" r="16" fill="none" stroke="var(--admin-warning)" stroke-width="4" stroke-dasharray="@(Model.PendingRoomsCount * 100 / total) 100" stroke-dashoffset="-@((Model.VerifiedRoomsCount + Model.NeedInfoRoomsCount) * 100 / total)"></circle>
+                        </svg>
+                        <div class="position-absolute d-flex flex-column align-items-center">
+                            <span class="text-muted" style="font-size: 0.75rem;">Tổng</span>
+                            <span class="fw-bold fs-4">@(Model.VerifiedRoomsCount + Model.PendingRoomsCount + Model.NeedInfoRoomsCount + Model.RejectedRoomsCount)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-3" style="font-size: 0.8rem;">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center mb-1"><div style="width: 8px; height: 8px; border-radius: 50%; background: var(--admin-success); margin-right: 6px;"></div>Đã xác minh</div>
+                            <span class="text-muted ms-3">@Model.VerifiedRoomsCount (@((Model.VerifiedRoomsCount * 100.0 / total).ToString("0.0"))%)</span>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center mb-1"><div style="width: 8px; height: 8px; border-radius: 50%; background: var(--admin-warning); margin-right: 6px;"></div>Chờ xác minh</div>
+                            <span class="text-muted ms-3">@Model.PendingRoomsCount (@((Model.PendingRoomsCount * 100.0 / total).ToString("0.0"))%)</span>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center mb-1"><div style="width: 8px; height: 8px; border-radius: 50%; background: var(--admin-primary); margin-right: 6px;"></div>Cần bổ sung</div>
+                            <span class="text-muted ms-3">@Model.NeedInfoRoomsCount (@((Model.NeedInfoRoomsCount * 100.0 / total).ToString("0.0"))%)</span>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center mb-1"><div style="width: 8px; height: 8px; border-radius: 50%; background: var(--admin-danger); margin-right: 6px;"></div>Bị từ chối</div>
+                            <span class="text-muted ms-3">@Model.RejectedRoomsCount (@((Model.RejectedRoomsCount * 100.0 / total).ToString("0.0"))%)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-muted mt-3" style="font-size: 0.75rem;">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Cập nhật: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="admin-card p-0 d-flex flex-column overflow-hidden">
+                <div class="p-4 border-bottom">
+                    <h6 class="fw-bold m-0">Thông tin nhanh</h6>
+                </div>
+                <div class="d-flex flex-column px-2 py-2">
+                    <div class="d-flex align-items-center p-3">
+                        <div class="admin-stat-icon icon-success rounded-circle m-0 me-3" style="width: 40px; height: 40px; font-size: 1rem;"><i class="fa-solid fa-check"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="text-admin-text-main fw-bold" style="font-size: 0.85rem;">Tỷ lệ xác minh</div>
+                            <div class="text-success fw-bold" style="font-size: 0.75rem;">Trên 25 phòng</div>
+                        </div>
+                        <div class="fw-bold fs-5">80.0%</div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center p-3">
+                        <div class="admin-stat-icon icon-primary rounded-circle m-0 me-3" style="width: 40px; height: 40px; font-size: 1rem;"><i class="fa-solid fa-file-lines"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="text-admin-text-main fw-bold" style="font-size: 0.85rem;">Đăng mới hôm nay</div>
+                            <div class="text-success fw-bold" style="font-size: 0.75rem;">Trong ngày hôm nay</div>
+                        </div>
+                        <div class="fw-bold fs-5">0</div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center p-3">
+                        <div class="admin-stat-icon icon-purple rounded-circle m-0 me-3" style="width: 40px; height: 40px; font-size: 1rem;"><i class="fa-solid fa-user-plus"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="text-admin-text-main fw-bold" style="font-size: 0.85rem;">Người dùng mới (tuần)</div>
+                            <div class="text-success fw-bold" style="font-size: 0.75rem;">7 ngày gần nhất</div>
+                        </div>
+                        <div class="fw-bold fs-5">4</div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center p-3">
+                        <div class="admin-stat-icon icon-warning rounded-circle m-0 me-3" style="width: 40px; height: 40px; font-size: 1rem;"><i class="fa-solid fa-house"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="text-admin-text-main fw-bold" style="font-size: 0.85rem;">Tổng số phòng</div>
+                            <div class="text-success fw-bold" style="font-size: 0.75rem;">Toàn hệ thống</div>
+                        </div>
+                        <div class="fw-bold fs-5">25</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tables Row -->
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="admin-card">
+                <h6 class="fw-bold mb-4">Hoạt động gần đây</h6>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã phòng</th>
+                                <th>Chủ trọ</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày đăng</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var room in Model.PendingRooms.Take(5))
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div style="width: 40px; height: 40px; border-radius: 8px; overflow: hidden; background: #f1f5f9; flex-shrink: 0;">
+                                                @if (room.Images != null && room.Images.Any())
+                                                {
+                                                    <img src="@room.Images.First().Url" class="w-100 h-100 object-fit-cover" />
+                                                }
+                                                else if (!string.IsNullOrEmpty(room.MainImageUrl))
+                                                {
+                                                    <img src="@room.MainImageUrl" class="w-100 h-100 object-fit-cover" />
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-solid fa-image text-muted d-flex justify-content-center align-items-center h-100"></i>
+                                                }
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">@room.Id.Substring(0, Math.Min(8, room.Id.Length)).ToUpper()</div>
+                                                <div class="text-muted" style="font-size: 0.8rem; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@room.Title</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="admin-user-avatar" style="width: 28px; height: 28px; font-size: 0.7rem; background: #e0f2fe; color: #0284c7;">
+                                                @(room.PostedBy?.Substring(0, 1).ToUpper() ?? "U")
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold" style="font-size: 0.85rem;">@room.PostedBy</div>
+                                                <div class="text-muted" style="font-size: 0.75rem;">@room.OwnerId</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="admin-badge badge-pending">Chờ duyệt</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold" style="font-size: 0.85rem;">@room.PostedAt.ToString("dd/MM/yyyy")</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">@room.PostedAt.ToString("HH:mm")</div>
+                                    </td>
+                                    <td class="text-end text-muted">
+                                        <i class="fa-solid fa-ellipsis" style="cursor: pointer;"></i>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.PendingRooms.Any())
+                            {
+                                <tr><td colspan="5" class="text-center text-muted py-4">Không có hoạt động nào</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-end mt-3 align-items-center text-muted small">
+                    <span class="me-3">Trang 1 / 1</span>
+                    <i class="fa-solid fa-chevron-left me-3" style="cursor: pointer;"></i>
+                    <i class="fa-solid fa-chevron-right" style="cursor: pointer;"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="admin-card">
+                <h6 class="fw-bold mb-4">Cảnh báo gần đây</h6>
+                <div class="d-flex flex-column gap-3">
+                    @if (!Model.RecentReports.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-shield-check fs-2 mb-2 text-success opacity-50"></i>
+                            <p class="mb-0 small">Không có cảnh báo vi phạm nào.</p>
+                        </div>
+                    }
+                    @foreach (var report in Model.RecentReports.Take(3))
+                    {
+                        <div class="d-flex gap-3 align-items-start p-3" style="background: #fff1f2; border-radius: 12px; border: 1px solid var(--admin-danger-light);">
+                            <div class="admin-stat-icon m-0" style="width: 32px; height: 32px; background: white; color: var(--admin-danger); font-size: 1rem; border-radius: 8px;">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold" style="font-size: 0.85rem;">Báo cáo nội dung</span>
+                                    <span class="text-muted" style="font-size: 0.7rem;">@((DateTime.Now - report.CreatedAt).Days) ngày trước</span>
+                                </div>
+                                <div class="text-muted" style="font-size: 0.8rem;">@report.Reason</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (currentFilter == "Pending")
+{
+    <!-- PENDING ROOMS VIEW -->
+    
+    <div class="admin-filter-bar">
+        <div class="admin-search-container" style="flex: 1; min-width: 250px;">
+            <i class="fa-solid fa-magnifying-glass admin-search-icon"></i>
+            <input type="text" class="admin-search-input py-2" placeholder="Tìm theo mã phòng, tiêu đề, chủ trọ..." />
+        </div>
+        
+        <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+            <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Trạng thái</span>
+            <select class="admin-filter-select">
+                <option>Tất cả</option>
+            </select>
+        </div>
+        
+        <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+            <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Khu vực</span>
+            <select class="admin-filter-select">
+                <option>Tất cả khu vực</option>
+            </select>
+        </div>
+        
+        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+            <span class="text-muted" style="font-size: 0.7rem; font-weight: bold; margin-left: 1rem; margin-bottom: -5px; z-index: 1;">Ngày đăng</span>
+            <select class="admin-filter-select">
+                <option>13/05/2025 - 19/05/2025</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-admin-outline d-flex align-items-center" style="height: 42px; margin-top: auto;">
+            <i class="fa-solid fa-sliders me-2"></i> Bộ lọc
+        </button>
+    </div>
+
+    <div class="admin-split-layout">
+        <!-- Left: List -->
+        <div class="admin-split-left admin-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <h6 class="fw-bold m-0">Danh sách bài đăng chờ duyệt</h6>
+                    @if(Model.PendingRooms.Any())
+                    {
+                        <span class="badge bg-primary rounded-circle" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">@Model.PendingRooms.Count()</span>
+                    }
+                </div>
+                <select class="admin-filter-select py-1 px-3 text-muted" style="font-size: 0.85rem;">
+                    <option>Mới nhất</option>
+                </select>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"></th>
+                            <th>Mã phòng</th>
+                            <th style="width: 30%;">Tiêu đề</th>
+                            <th>Chủ trọ</th>
+                            <th>Khu vực</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày đăng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.PendingRooms.Any())
+                        {
+                            <tr><td colspan="7" class="text-center py-5 text-muted">Không có bài đăng nào đang chờ duyệt.</td></tr>
+                        }
+                        @foreach (var room in Model.PendingRooms)
+                        {
+                            <tr onclick="showRoomDetails('@room.Id')">
+                                <td><input type="checkbox" class="admin-checkbox" /></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <div style="width: 36px; height: 36px; border-radius: 6px; overflow: hidden; background: #f1f5f9;">
+                                            @if (room.Images != null && room.Images.Any())
+                                            {
+                                                <img src="@room.Images.First().Url" class="w-100 h-100 object-fit-cover" />
+                                            }
+                                            else if (!string.IsNullOrEmpty(room.MainImageUrl))
+                                            {
+                                                <img src="@room.MainImageUrl" class="w-100 h-100 object-fit-cover" />
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold" style="font-size: 0.8rem;">SRF-@room.Id.Substring(0, Math.Min(5, room.Id.Length)).ToUpper()</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark" style="font-size: 0.85rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@room.Title</div>
+                                    <div class="text-muted" style="font-size: 0.75rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@room.Address</div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="admin-user-avatar" style="width: 24px; height: 24px; font-size: 0.65rem; background: #e0f2fe; color: #0284c7;">
+                                            @(room.PostedBy?.Substring(0, 1).ToUpper() ?? "U")
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold" style="font-size: 0.8rem;">@room.PostedBy</div>
+                                            <div class="text-muted" style="font-size: 0.7rem;">@room.OwnerId</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="text-muted" style="font-size: 0.85rem;">@room.Location</span></td>
+                                <td><span class="admin-badge badge-pending">Chờ xác minh</span></td>
+                                <td>
+                                    <div class="fw-bold" style="font-size: 0.85rem;">@room.PostedAt.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">@room.PostedAt.ToString("HH:mm")</div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4 align-items-center">
+                <div class="text-muted" style="font-size: 0.85rem;">Hiển thị @(Model.PendingRooms.Any() ? 1 : 0) - @Model.PendingRooms.Count() trong @Model.PendingRooms.Count() kết quả</div>
+                <div class="d-flex gap-1 align-items-center">
+                    <button class="btn btn-sm btn-light border"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-primary text-white">1</button>
+                    <button class="btn btn-sm btn-light border">2</button>
+                    <button class="btn btn-sm btn-light border">3</button>
+                    <button class="btn btn-sm btn-light border">...</button>
+                    <button class="btn btn-sm btn-light border">10 / trang</button>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 rounded" style="background: var(--admin-warning-light); color: #d97706; font-size: 0.85rem; font-weight: 500;">
+                Các bài đăng chưa xác minh vẫn có thể hiển thị trên trang chủ với nhãn <span class="fw-bold">Chờ xác minh</span> để người dùng tham khảo.
+            </div>
+        </div>
+        
+        <!-- Right: Detail Panel -->
+        <div class="admin-split-right admin-detail-panel" id="roomDetailPanel" style="display: none;">
+            @foreach (var room in Model.PendingRooms)
+            {
+                <div id="detail-@room.Id" class="room-detail-content h-100 d-flex flex-column" style="display: none;">
+                    <div class="admin-detail-header">
+                        <h6 class="fw-bold m-0">Chi tiết bài đăng</h6>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="fw-bold text-primary" style="font-size: 0.85rem;">SRF-@room.Id.Substring(0, Math.Min(5, room.Id.Length)).ToUpper()</span>
+                            <i class="fa-solid fa-xmark text-muted fs-5" style="cursor: pointer;" onclick="closeDetails()"></i>
+                        </div>
+                    </div>
+                    <div class="admin-detail-body">
+                        <!-- Content goes here -->
+                        <div style="background: #f1f5f9; height: 180px; border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden; position: relative;">
+                            @if (room.Images != null && room.Images.Any())
+                            {
+                                <img src="@room.Images.First().Url" class="w-100 h-100 object-fit-cover" />
+                                <div class="position-absolute bottom-0 end-0 m-2 bg-dark bg-opacity-75 text-white px-2 py-1 rounded small">
+                                    1 / @room.Images.Count()
+                                </div>
+                            }
+                            else if (!string.IsNullOrEmpty(room.MainImageUrl))
+                            {
+                                <img src="@room.MainImageUrl" class="w-100 h-100 object-fit-cover" />
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="fa-solid fa-image fa-3x text-muted opacity-50"></i>
+                                </div>
+                            }
+                        </div>
+                        
+                        <h4 class="fw-bold mb-2">@room.Title</h4>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <h5 class="fw-bold text-primary m-0">@room.Price.ToString("N0") đ/tháng</h5>
+                            <span class="admin-badge badge-pending">Chờ xác minh</span>
+                        </div>
+                        <div class="text-muted small mb-4">
+                            <i class="fa-solid fa-location-dot me-1"></i> @room.Address
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold m-0" style="font-size: 0.9rem;">Chủ trọ</h6>
+                            <span class="text-muted" style="font-size: 0.75rem;">Ngày đăng @room.PostedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="p-3 border rounded mb-4" style="background: #f8fafc;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="admin-user-avatar" style="width: 40px; height: 40px; font-size: 1.2rem; background: #e0f2fe; color: #0284c7;">
+                                    @(room.PostedBy?.Substring(0, 1).ToUpper() ?? "U")
+                                </div>
+                                <div>
+                                    <div class="fw-bold">@room.PostedBy</div>
+                                    <div class="text-muted small">@room.OwnerId</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-3" style="font-size: 0.9rem;">Tiện ích</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            @if(room.Amenities != null)
+                            {
+                                foreach (var item in room.Amenities)
+                                {
+                                    <span class="badge rounded-pill border text-dark bg-white fw-normal d-flex align-items-center px-3 py-2">
+                                        <i class="fa-solid fa-check text-success me-2"></i> @item
+                                    </span>
+                                }
+                            }
+                        </div>
+                        
+                        <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">Mô tả</h6>
+                        <p class="text-muted mb-4" style="font-size: 0.85rem; line-height: 1.6;">
+                            @(room.Description.Length > 200 ? room.Description.Substring(0, 200) + "..." : room.Description)
+                            @if(room.Description.Length > 200) { <a href="#" class="text-primary text-decoration-none ms-1">Xem thêm</a> }
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="fw-bold m-0" style="font-size: 0.9rem;">Giấy tờ tài liệu</h6>
+                            <a href="#" class="text-primary text-decoration-none small">Xem tất cả</a>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-detail-footer">
+                        <form asp-controller="Admin" asp-action="Verify" method="post" class="flex-grow-1">
+                            <input type="hidden" name="id" value="@room.Id" />
+                            <input type="hidden" name="note" value="Tin đăng hợp lệ." />
+                            <button type="submit" class="btn btn-admin-success w-100 d-flex justify-content-center align-items-center gap-2">
+                                <i class="fa-regular fa-circle-check"></i> Xác minh
+                            </button>
+                        </form>
+                        
+                        <form asp-controller="Admin" asp-action="RequestInfo" method="post" class="flex-grow-1" onsubmit="return submitWithReason(this, 'Nhập nội dung yêu cầu bổ sung:');">
+                            <input type="hidden" name="id" value="@room.Id" />
+                            <input type="hidden" name="note" class="reason-input" value="" />
+                            <button type="submit" class="btn btn-admin-primary w-100 d-flex justify-content-center align-items-center gap-2">
+                                <i class="fa-solid fa-bars-staggered"></i> Yêu cầu bổ sung
+                            </button>
+                        </form>
+                        
+                        <form asp-controller="Admin" asp-action="Reject" method="post" class="flex-grow-1" onsubmit="return submitWithReason(this, 'Nhập lý do từ chối bài đăng:');">
+                            <input type="hidden" name="id" value="@room.Id" />
+                            <input type="hidden" name="note" class="reason-input" value="" />
+                            <button type="submit" class="btn btn-admin-danger w-100 d-flex justify-content-center align-items-center gap-2">
+                                <i class="fa-solid fa-xmark"></i> Từ chối
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    
+    @section Scripts {
+        <script>
+            function showRoomDetails(roomId) {
+                // Hide all details
+                document.querySelectorAll('.room-detail-content').forEach(el => {
+                    el.style.setProperty('display', 'none', 'important');
+                });
+                
+                // Show panel
+                document.getElementById('roomDetailPanel').style.display = 'flex';
+                
+                // Show specific room detail
+                const detailEl = document.getElementById('detail-' + roomId);
+                if (detailEl) {
+                    detailEl.style.setProperty('display', 'flex', 'important');
+                }
+                
+                // Remove selected class from all rows
+                document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                    row.classList.remove('selected');
+                    row.querySelector('input[type="checkbox"]').checked = false;
+                });
+                
+                // Add selected class to clicked row
+                const row = event.currentTarget;
+                row.classList.add('selected');
+                row.querySelector('input[type="checkbox"]').checked = true;
+            }
+            
+            function closeDetails() {
+                document.getElementById('roomDetailPanel').style.display = 'none';
+                document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+                    row.classList.remove('selected');
+                    row.querySelector('input[type="checkbox"]').checked = false;
+                });
+            }
+            
+            // Show the first one by default if there are pending rooms
+            document.addEventListener("DOMContentLoaded", function() {
+                const firstRow = document.querySelector('.admin-table tbody tr');
+                if (firstRow && firstRow.getAttribute('onclick')) {
+                    firstRow.click();
+                }
+            });
+
+            function submitWithReason(form, promptMessage) {
+                const reason = prompt(promptMessage);
+                if (reason === null || reason.trim() === '') {
+                    return false; // Cancel submit
+                }
+                form.querySelector('.reason-input').value = reason;
+                return true;
+            }
+        </script>
+    }
+}

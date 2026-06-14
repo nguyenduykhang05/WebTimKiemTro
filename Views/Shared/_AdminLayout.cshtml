@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin SMART ROOM FINDER</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom styling -->
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+        <div class="admin-logo-box">
+            <div class="admin-logo-icon">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold m-0" style="color: var(--admin-text-main);">Smart Room Finder</h6>
+                <small class="text-muted" style="font-size: 0.7rem;">Nền tảng tìm phòng thông minh</small>
+            </div>
+        </div>
+        
+        <div class="d-flex flex-column flex-grow-1 mt-2">
+            @{
+                var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+                var action = ViewContext.RouteData.Values["action"]?.ToString();
+                var filter = ViewBag.CurrentFilter as string;
+            }
+            
+            <a class="admin-nav-item @(action == "Dashboard" && string.IsNullOrEmpty(filter) ? "active" : "")" asp-controller="Admin" asp-action="Dashboard" asp-route-status="">
+                <i class="fa-solid fa-border-all"></i> Tổng quan
+            </a>
+            <a class="admin-nav-item @(action == "Dashboard" && filter == "Pending" ? "active" : "")" asp-controller="Admin" asp-action="Dashboard" asp-route-status="Pending">
+                <i class="fa-solid fa-list-check"></i> Duyệt bài đăng
+            </a>
+            <a class="admin-nav-item @(action == "ManageUsers" ? "active" : "")" asp-controller="Admin" asp-action="ManageUsers">
+                <i class="fa-solid fa-user-group"></i> Người dùng
+            </a>
+            <a class="admin-nav-item @(action == "Reports" ? "active" : "")" asp-controller="Admin" asp-action="Reports">
+                <i class="fa-solid fa-chart-simple"></i> Báo cáo
+            </a>
+            
+            <div class="mt-4 mb-2 ps-3">
+                <small class="text-muted fw-bold" style="font-size: 0.7rem;">HỆ THỐNG</small>
+            </div>
+            
+            <a class="admin-nav-item @(ViewBag.CurrentSubMenu == "Support" ? "active" : "")" asp-controller="Admin" asp-action="Support">
+                <i class="fa-solid fa-headset text-muted"></i> Hỗ trợ
+            </a>
+            <a class="admin-nav-item @(ViewBag.CurrentSubMenu == "Settings" ? "active" : "")" asp-controller="Admin" asp-action="Settings">
+                <i class="fa-solid fa-gear text-muted"></i> Cài đặt
+            </a>
+        </div>
+
+        <a class="admin-nav-item admin-logout-btn" asp-controller="Auth" asp-action="Logout">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+        </a>
+        <div class="text-center mt-3">
+            <small class="text-muted" style="font-size: 0.65rem;">&copy; 2025 Smart Room Finder<br/>Phiên bản 1.0.0</small>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <h3 class="fw-bold mb-1" style="letter-spacing: -0.5px;">@ViewData["Title"]</h3>
+                <p class="text-muted small mb-0">@ViewData["Subtitle"]</p>
+            </div>
+            <div class="admin-header-actions">
+                <div class="admin-search-container">
+                    <i class="fa-solid fa-magnifying-glass admin-search-icon"></i>
+                    <input type="text" class="admin-search-input" placeholder="Tìm kiếm bài đăng, người dùng hoặc cảnh báo..." />
+                    <span class="admin-search-shortcut">Ctrl K</span>
+                </div>
+                <a href="#" class="admin-btn-icon">
+                    <i class="fa-regular fa-bell"></i>
+                </a>
+                <div class="admin-user-dropdown dropdown">
+                    <div data-bs-toggle="dropdown" aria-expanded="false" class="d-flex align-items-center w-100">
+                        <div class="admin-user-avatar">
+                            @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "A")
+                        </div>
+                        <div class="d-flex flex-column" style="line-height: 1.2;">
+                            <span class="fw-bold" style="font-size: 0.85rem; color: var(--admin-text-main);">@(User.Identity?.Name ?? "Admin Default")</span>
+                            <span class="text-muted" style="font-size: 0.7rem;">Quản trị viên</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down ms-2 text-muted" style="font-size: 0.7rem;"></i>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px; min-width: 200px;">
+                        <li><a class="dropdown-item py-2" href="/"><i class="fa-solid fa-arrow-up-right-from-square me-2 text-muted"></i>Xem Website</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" asp-controller="Auth" asp-action="Logout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        @RenderBody()
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

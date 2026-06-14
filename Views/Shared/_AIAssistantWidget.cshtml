@@ -1,0 +1,189 @@
+<div id="aiChatWidget" class="position-fixed bottom-0 end-0 m-4 z-3" style="width: 380px; display: none;">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.95);">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-robot me-2 text-warning"></i>Trợ lý ảo AI</h6>
+            <button type="button" class="btn-close btn-close-white" onclick="toggleAIChat()"></button>
+        </div>
+        <div class="card-body p-3" id="aiChatBody" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+            <!-- Welcome message -->
+            <div class="d-flex mb-3">
+                <div class="bg-primary text-white p-2 rounded-3 shadow-sm" style="max-width: 85%;">
+                    <div class="small">Xin chào! Mình là Trợ lý AI. Bạn cần tìm phòng như thế nào? (VD: Tìm phòng ở Bình Thạnh dưới 4 triệu có máy lạnh)</div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-white p-2">
+            <div class="input-group">
+                <input type="text" id="aiChatInput" class="form-control rounded-pill border-secondary border-opacity-25" placeholder="Nhập yêu cầu của bạn..." onkeypress="if(event.key === 'Enter') sendAIChat()">
+                <button class="btn btn-primary rounded-circle ms-2 shadow-sm" style="width: 40px; height: 40px;" onclick="sendAIChat()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ViewContext.RouteData.Values["controller"]?.ToString() != "Chat")
+{
+    <!-- Floating button -->
+    <button id="aiChatBtn" class="btn btn-primary position-fixed bottom-0 end-0 m-4 rounded-circle shadow-lg z-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; transition: transform 0.2s;" onclick="toggleAIChat()" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <i class="fa-solid fa-wand-magic-sparkles fs-3 text-warning"></i>
+    </button>
+}
+
+<style>
+    .ai-typing {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: #0d6efd;
+        border-radius: 50%;
+        margin: 0 2px;
+        animation: ai-typing-anim 1.4s infinite ease-in-out both;
+    }
+    .ai-typing:nth-child(1) { animation-delay: -0.32s; }
+    .ai-typing:nth-child(2) { animation-delay: -0.16s; }
+    @@keyframes ai-typing-anim {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+    .chat-room-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+</style>
+
+<script>
+    let aiSessionId = '@Guid.NewGuid().ToString()';
+
+    function toggleAIChat() {
+        const widget = document.getElementById('aiChatWidget');
+        const btn = document.getElementById('aiChatBtn');
+        if (widget.style.display === 'none') {
+            widget.style.display = 'block';
+            btn.style.display = 'none';
+            document.getElementById('aiChatInput').focus();
+        } else {
+            widget.style.display = 'none';
+            btn.style.display = 'flex';
+        }
+    }
+
+    function sendAIChat() {
+        const input = document.getElementById('aiChatInput');
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        input.value = '';
+        appendUserMessage(msg);
+        showTypingIndicator();
+
+        fetch('/api/ai-assistant/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg, sessionId: aiSessionId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            removeTypingIndicator();
+            if (data.success) {
+                appendBotMessage(data.data);
+            } else {
+                appendBotError("Xin lỗi, hệ thống AI đang bảo trì.");
+            }
+        })
+        .catch(err => {
+            removeTypingIndicator();
+            appendBotError("Lỗi kết nối đến máy chủ AI.");
+        });
+    }
+
+    function appendUserMessage(msg) {
+        const body = document.getElementById('aiChatBody');
+        body.innerHTML += `
+            <div class="d-flex mb-3 justify-content-end">
+                <div class="bg-light p-2 rounded-3 shadow-sm border" style="max-width: 85%;">
+                    <div class="small text-dark">${msg}</div>
+                </div>
+            </div>`;
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        const body = document.getElementById('aiChatBody');
+        body.innerHTML += `
+            <div class="d-flex mb-3" id="typingIndicator">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-3" style="max-width: 85%;">
+                    <div class="ai-typing"></div><div class="ai-typing"></div><div class="ai-typing"></div>
+                </div>
+            </div>`;
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        const typing = document.getElementById('typingIndicator');
+        if (typing) typing.remove();
+    }
+
+    function appendBotError(msg) {
+        const body = document.getElementById('aiChatBody');
+        body.innerHTML += `
+            <div class="d-flex mb-3">
+                <div class="bg-danger text-white p-2 rounded-3 shadow-sm" style="max-width: 85%;">
+                    <div class="small">${msg}</div>
+                </div>
+            </div>`;
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function appendBotMessage(data) {
+        const body = document.getElementById('aiChatBody');
+        
+        let pillsHtml = '';
+        if (data.extractedFilters) {
+            const f = data.extractedFilters;
+            if (f.location) pillsHtml += `<span class="badge bg-info text-dark me-1 mb-1"><i class="fa-solid fa-location-dot me-1"></i>${f.location}</span>`;
+            if (f.landmark) pillsHtml += `<span class="badge bg-warning text-dark me-1 mb-1"><i class="fa-solid fa-map-pin me-1"></i>${f.landmark}</span>`;
+            if (f.roomType) pillsHtml += `<span class="badge bg-secondary me-1 mb-1"><i class="fa-solid fa-house me-1"></i>${f.roomType}</span>`;
+            if (f.maxPrice) pillsHtml += `<span class="badge bg-success me-1 mb-1"><i class="fa-solid fa-money-bill me-1"></i><= ${f.maxPrice.toLocaleString('vi-VN')}</span>`;
+            if (f.amenities && f.amenities.length > 0) {
+                f.amenities.forEach(a => {
+                    pillsHtml += `<span class="badge bg-primary bg-opacity-75 me-1 mb-1"><i class="fa-solid fa-check me-1"></i>${a}</span>`;
+                });
+            }
+        }
+
+        let msgHtml = `
+            <div class="d-flex mb-2">
+                <div class="bg-primary text-white p-2 rounded-3 shadow-sm w-100">
+                    <div class="small mb-1">${data.replyText}</div>
+                    ${pillsHtml ? `<div class="mt-2 pt-2 border-top border-light border-opacity-25">${pillsHtml}</div>` : ''}
+                </div>
+            </div>`;
+
+        if (data.suggestedRooms && data.suggestedRooms.length > 0) {
+            let roomsHtml = '<div class="d-flex flex-column gap-2 mb-3">';
+            data.suggestedRooms.forEach(r => {
+                roomsHtml += `
+                    <a href="/Home/Detail/${r.id}" class="text-decoration-none text-dark">
+                        <div class="card chat-room-card border-0 shadow-sm" style="transition: all 0.2s;">
+                            <div class="row g-0">
+                                <div class="col-4">
+                                    <img src="${r.mainImageUrl}" class="img-fluid rounded-start h-100 object-fit-cover" alt="...">
+                                </div>
+                                <div class="col-8">
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title text-truncate small fw-bold mb-1">${r.title}</h6>
+                                        <p class="card-text text-danger small fw-bold mb-0">${r.price.toLocaleString('vi-VN')} đ</p>
+                                        <p class="card-text text-muted" style="font-size: 0.7rem;"><i class="fa-solid fa-ruler-combined me-1"></i>${r.area} m²</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>`;
+            });
+            roomsHtml += '</div>';
+            msgHtml += roomsHtml;
+        }
+
+        body.innerHTML += msgHtml;
+        body.scrollTop = body.scrollHeight;
+    }
+</script>

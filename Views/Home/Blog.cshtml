@@ -1,0 +1,94 @@
+@{
+    ViewData["Title"] = "Blog - Cẩm nang thuê phòng";
+}
+
+<!-- Hero Section -->
+<div class="position-relative overflow-hidden rounded-4 mb-5" style="min-height: 400px;">
+    <div class="position-absolute w-100 h-100" style="background: url('https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1200&q=80') center/cover;"></div>
+    <div class="position-absolute w-100 h-100" style="background: linear-gradient(to right, rgba(15,23,42,0.95), rgba(15,23,42,0.4));"></div>
+    
+    <div class="container position-relative h-100 d-flex flex-column justify-content-center p-5" style="min-height: 400px; z-index: 2;">
+        <span class="badge bg-primary px-3 py-2 mb-3" style="width: fit-content;">Mới Nhất</span>
+        <h1 class="display-5 fw-bold text-white mb-3" style="max-width: 600px;">Bí quyết đàm phán giá thuê phòng trọ cực đỉnh năm 2026</h1>
+        <p class="text-white opacity-75 fs-5 mb-4" style="max-width: 500px;">Làm thế nào để thuê được căn phòng ưng ý với giá hời nhất? Đừng bỏ qua những tips cực kỳ hữu ích này.</p>
+        <div class="d-flex align-items-center">
+            <img src="https://i.pravatar.cc/150?img=32" class="rounded-circle me-3 border border-2 border-primary" width="50" height="50">
+            <div>
+                <h6 class="mb-0 text-white fw-bold">Minh Trang</h6>
+                <small class="text-white opacity-50">12 Tháng 6, 2026 • 5 phút đọc</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-fire text-danger me-2"></i>Cẩm nang HOT</h3>
+            <p class="text-secondary small mb-0">Những bài viết được đọc nhiều nhất tuần qua.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 active">Tất cả</button>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">Tân sinh viên</button>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">Review khu vực</button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Article 1 -->
+        <div class="col-md-4">
+            <div class="card glass-panel border border-secondary border-opacity-10 h-100 overflow-hidden" style="background: rgba(255,255,255,0.02);">
+                <div style="height: 200px; overflow: hidden; position: relative;">
+                    <span class="position-absolute top-0 end-0 m-3 badge bg-danger z-2"><i class="fa-solid fa-heart me-1"></i> 1.2k</span>
+                    <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80" class="w-100 h-100 object-fit-cover hover-zoom" style="transition: transform 0.5s;">
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <span class="text-primary small fw-bold mb-2">Review Khu Vực</span>
+                    <h5 class="fw-bold mb-2">Đánh giá ưu nhược điểm khi thuê phòng Làng Đại Học Thủ Đức</h5>
+                    <p class="text-secondary small mb-4">Khu vực Làng Đại Học luôn là điểm nóng. Nhưng liệu có thực sự rẻ và an toàn như lời đồn?</p>
+                    <a asp-controller="Home" asp-action="Index" class="mt-auto fw-bold text-decoration-none text-primary">Đọc tiếp <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Article 2 -->
+        <div class="col-md-4">
+            <div class="card glass-panel border border-secondary border-opacity-10 h-100 overflow-hidden" style="background: rgba(255,255,255,0.02);">
+                <div style="height: 200px; overflow: hidden; position: relative;">
+                    <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=600&q=80" class="w-100 h-100 object-fit-cover hover-zoom" style="transition: transform 0.5s;">
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <span class="text-success small fw-bold mb-2">Tips Tân Sinh Viên</span>
+                    <h5 class="fw-bold mb-2">5 Bước nhận diện cò mồi lừa đảo khi đi tìm phòng trọ</h5>
+                    <p class="text-secondary small mb-4">Cảnh giác với những thủ đoạn tinh vi của cò mồi, giúp bạn không bị mất tiền oan khi đặt cọc.</p>
+                    <a asp-controller="Home" asp-action="Index" class="mt-auto fw-bold text-decoration-none text-success">Đọc tiếp <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Article 3 -->
+        <div class="col-md-4">
+            <div class="card glass-panel border border-secondary border-opacity-10 h-100 overflow-hidden" style="background: rgba(255,255,255,0.02);">
+                <div style="height: 200px; overflow: hidden; position: relative;">
+                    <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80" class="w-100 h-100 object-fit-cover hover-zoom" style="transition: transform 0.5s;">
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <span class="text-warning small fw-bold mb-2">Luật & Hợp đồng</span>
+                    <h5 class="fw-bold mb-2">Những điều khoản cần lưu ý trước khi đặt bút ký hợp đồng</h5>
+                    <p class="text-secondary small mb-4">Cách đọc hiểu hợp đồng thuê phòng, tiền cọc, và các khoản phí ẩn mà chủ nhà thường không nói.</p>
+                    <a asp-controller="Home" asp-action="Index" class="mt-auto fw-bold text-decoration-none text-warning">Đọc tiếp <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-5">
+        <button class="btn btn-premium-secondary px-5 py-2"><i class="fa-solid fa-spinner me-2"></i> Tải thêm bài viết</button>
+    </div>
+</div>
+
+<style>
+    .hover-zoom:hover {
+        transform: scale(1.1);
+    }
+</style>

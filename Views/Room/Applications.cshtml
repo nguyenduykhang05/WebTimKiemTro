@@ -1,0 +1,123 @@
+@model IEnumerable<SmartRoomFinder.Models.ApplicationModel>
+
+@{
+    ViewData["Title"] = "Đơn Đăng Ký Thuê Phòng";
+    var isLandlord = User.IsInRole("Landlord");
+}
+
+<h3 class="fw-bold mt-3 mb-4">
+    <i class="fa-solid fa-file-invoice text-info me-2"></i>
+    @(isLandlord ? "Đơn Ứng Tuyển Thuê Phòng (Chủ trọ nhận được)" : "Đơn Thuê Phòng Của Bạn (Đã gửi)")
+</h3>
+
+<div class="glass-panel p-4 mb-5">
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fa-solid fa-folder-open fs-1 text-secondary mb-3"></i>
+            <h5 class="text-secondary">Chưa có đơn đăng ký thuê phòng nào được ghi nhận.</h5>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var app in Model)
+            {
+                <div class="col-md-6">
+                    <div class="card glass-panel border border-secondary border-opacity-25 h-100 p-4" style="background: rgba(255,255,255,0.01);">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center">
+                                <img src="@app.RoomImageUrl" class="rounded me-3" style="width: 70px; height: 50px; object-fit: cover;" alt="Room" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=70&q=80'">
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-info">@app.RoomTitle</h6>
+                                    @if (isLandlord)
+                                    {
+                                        <span class="small text-secondary">Người nộp: <strong>@app.RenterName</strong></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="small text-secondary">Chủ trọ: <strong>@app.OwnerName</strong></span>
+                                    }
+                                </div>
+                            </div>
+                            <span class="badge @(app.Status switch {
+                                "approved" => "badge-verified",
+                                "rejected" => "badge-rejected",
+                                _ => "badge-pending"
+                            }) py-2 px-3">
+                                @(app.Status switch {
+                                    "approved" => "Được nhận",
+                                    "rejected" => "Từ chối",
+                                    _ => "Đang chờ duyệt"
+                                })
+                            </span>
+                        </div>
+
+                        <div class="mb-3 small text-secondary">
+                            <div class="mb-1"><i class="fa-solid fa-message me-2 text-muted"></i>Lời nhắn: "@app.Message"</div>
+                            <div class="mb-1"><i class="fa-solid fa-phone me-2 text-muted"></i>SĐT liên hệ: @app.RenterPhone</div>
+                            <div class="mb-1"><i class="fa-regular fa-calendar-days me-2 text-muted"></i>Ngày dọn vào: @(app.ExpectedMoveInDate?.ToString("dd/MM/yyyy") ?? "Chưa rõ")</div>
+                            <div class="mb-1"><i class="fa-solid fa-clock me-2 text-muted"></i>Nộp ngày: @app.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(app.Note))
+                        {
+                            <div class="p-3 rounded bg-dark border border-secondary border-opacity-50 small mb-3">
+                                <strong class="text-warning"><i class="fa-solid fa-reply me-1"></i> Phản hồi từ chủ nhà:</strong>
+                                <p class="mb-0 mt-1 text-secondary">@app.Note</p>
+                            </div>
+                        }
+
+                        @if (isLandlord && app.Status == "pending")
+                        {
+                            <div class="mt-auto pt-3 border-top border-secondary border-opacity-25 d-flex gap-2 justify-content-end">
+                                <a class="btn btn-premium-secondary btn-sm" asp-controller="Chat" asp-action="Index" asp-route-chatId=""><i class="fa-solid fa-comments"></i> Chat</a>
+                                <button class="btn btn-premium btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal-@app.Id">
+                                    <i class="fa-solid fa-user-check"></i> Duyệt đơn
+                                </button>
+                            </div>
+
+                            <!-- Modal duyệt đơn cho từng đơn -->
+                            <div class="modal fade" id="updateModal-@app.Id" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content glass-panel border border-secondary" style="background: var(--bg-primary);">
+                                        <div class="modal-header border-secondary p-4 pb-2">
+                                            <h5 class="modal-title fw-bold"><i class="fa-solid fa-shield-halved text-warning me-2"></i>Duyệt đơn thuê phòng</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form asp-action="UpdateApplicationStatus" method="post">
+                                            <input type="hidden" name="appId" value="@app.Id" />
+                                            <div class="modal-body p-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label text-secondary small fw-bold">Quyết định</label>
+                                                    <select name="status" class="form-select form-premium-control" required>
+                                                        <option value="approved">Đồng ý cho thuê (Approve)</option>
+                                                        <option value="rejected">Từ chối đơn (Reject)</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label text-secondary small fw-bold">Lời nhắn / Ghi chú phản hồi</label>
+                                                    <textarea name="note" class="form-control form-premium-control" rows="3" placeholder="Ví dụ: Chào bạn, tôi đồng ý cho bạn thuê phòng. Chúng ta sẽ gặp mặt vào cuối tuần để ký hợp đồng." required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-secondary p-4 pt-2">
+                                                <button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                <button type="submit" class="btn btn-premium">Cập nhật đơn</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mt-auto pt-3 border-top border-secondary border-opacity-25 text-end">
+                                <span class="small text-muted"><i class="fa-solid fa-check-double text-success me-1"></i>Đã xử lý</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

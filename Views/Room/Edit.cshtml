@@ -1,0 +1,207 @@
+@model SmartRoomFinder.Models.ViewModels.RoomEditViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Tin Phòng Trọ";
+}
+
+<div class="row mt-4 mb-5">
+    <div class="col-lg-8 mx-auto">
+        <div class="glass-panel p-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold m-0" style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Cập Nhật Phòng Trọ
+                </h2>
+                
+                <form asp-action="Delete" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài đăng này không?');">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash me-1"></i> Xóa phòng</button>
+                </form>
+            </div>
+
+            <form asp-controller="Room" asp-action="Edit" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="CurrentMainImageUrl" />
+
+                <div class="row g-4">
+                    <!-- Tiêu đề & Loại hình -->
+                    <div class="col-md-8">
+                        <label class="form-label text-secondary small fw-bold">Tiêu đề bài đăng</label>
+                        <input type="text" asp-for="Title" class="form-control form-premium-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small fw-bold">Loại phòng</label>
+                        <select asp-for="Type" class="form-select form-premium-control" asp-items="Html.GetEnumSelectList<SmartRoomFinder.Models.RoomType>()">
+                        </select>
+                    </div>
+
+                    <!-- Giá & Diện tích & Số phòng ngủ -->
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small fw-bold">Giá thuê (VNĐ/tháng)</label>
+                        <input type="number" asp-for="Price" class="form-control form-premium-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small fw-bold">Diện tích (m²)</label>
+                        <input type="number" step="0.1" asp-for="Area" class="form-control form-premium-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small fw-bold">Số phòng ngủ</label>
+                        <input type="number" asp-for="Bedrooms" class="form-control form-premium-control" required />
+                    </div>
+
+                    <!-- Hướng & Khu vực -->
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Hướng cửa chính</label>
+                        <select asp-for="Direction" class="form-select form-premium-control" asp-items="Html.GetEnumSelectList<SmartRoomFinder.Models.RoomDirection>()">
+                            <option value="">Không xác định</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Khu vực (Quận/Huyện)</label>
+                        <input type="text" asp-for="Location" class="form-control form-premium-control" required />
+                    </div>
+
+                    <!-- Địa chỉ cụ thể -->
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">Địa chỉ chi tiết</label>
+                        <input type="text" asp-for="Address" class="form-control form-premium-control" required />
+                    </div>
+
+                    <!-- Mô tả -->
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">Mô tả phòng trọ</label>
+                        <textarea asp-for="Description" class="form-control form-premium-control" rows="5" required></textarea>
+                    </div>
+
+                    <!-- Upload ảnh -->
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-bold">Đổi ảnh đại diện chính (Bỏ qua nếu không đổi)</label>
+                        <input type="file" asp-for="MainImage" class="form-control form-premium-control" accept="image/*" />
+                        @if(!string.IsNullOrEmpty(Model.CurrentMainImageUrl)) {
+                            <img src="@Model.CurrentMainImageUrl" class="mt-2 rounded" style="width: 100px;" />
+                        }
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">Thêm ảnh phụ mới</label>
+                        <div class="upload-dropzone p-4 text-center border rounded-3" id="dropzone" style="border: 2px dashed #0d6efd !important; background: #f8f9fa; cursor: pointer; transition: all 0.2s;">
+                            <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
+                            <h6>Kéo thả ảnh vào đây hoặc click để chọn</h6>
+                            <p class="text-secondary small mb-0">Hỗ trợ JPG, PNG</p>
+                            <input type="file" asp-for="SubImages" class="d-none" id="SubImages" multiple accept="image/*" />
+                        </div>
+                        <div id="imagePreviewContainer" class="d-flex flex-wrap gap-3 mt-3"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">Ảnh phụ hiện tại (Đánh dấu X để xóa)</label>
+                        <div class="d-flex flex-wrap gap-3 mt-2">
+                            @foreach(var img in Model.CurrentSubImages) {
+                                <div class="position-relative shadow-sm rounded-3" style="width: 100px; height: 100px;">
+                                    <img src="@img.Url" class="w-100 h-100 rounded-3" style="object-fit: cover; border: 2px solid #fff;" />
+                                    <!-- Deletion via checkboxes -->
+                                    <div class="position-absolute" style="top: -8px; right: -8px; z-index: 2;">
+                                        <input type="checkbox" name="RemoveSubImages" value="@img.Url" class="form-check-input bg-danger border-0 shadow" style="width: 24px; height: 24px; cursor: pointer;">
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Tiện ích -->
+                    <div class="col-12">
+                        <label class="form-label text-secondary small fw-bold">Tiện ích kèm theo (Cách nhau bởi dấu phẩy)</label>
+                        <input type="text" asp-for="AmenitiesInput" class="form-control form-premium-control" />
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 justify-content-end mt-5">
+                    <a class="btn btn-premium-secondary px-4 py-3" asp-action="Manage">Hủy</a>
+                    <button type="submit" class="btn btn-warning px-5 py-3"><i class="fa-solid fa-save me-2"></i>Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Drag and Drop Upload Logic
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('SubImages');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            let selectedFiles = []; // Keep track of active files
+
+            dropzone.addEventListener('click', () => fileInput.click());
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.style.backgroundColor = '#e9ecef';
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.style.backgroundColor = '#f8f9fa';
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.style.backgroundColor = '#f8f9fa';
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+
+            function handleFiles(files) {
+                Array.from(files).forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        selectedFiles.push(file);
+                        renderPreview(file, selectedFiles.length - 1);
+                    }
+                });
+                updateFileInput();
+            }
+
+            function renderPreview(file, index) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative shadow-sm rounded-3';
+                    div.style.width = '100px';
+                    div.style.height = '100px';
+                    div.dataset.index = index;
+                    
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="w-100 h-100 rounded-3" style="object-fit: cover; border: 2px solid #fff;" />
+                        <button type="button" class="btn btn-danger btn-sm position-absolute rounded-circle shadow" 
+                                style="top: -8px; right: -8px; width: 24px; height: 24px; padding: 0; line-height: 1; z-index: 2;" 
+                                onclick="removeImage(${index}, this)">
+                            <i class="fa-solid fa-xmark" style="font-size: 0.7rem;"></i>
+                        </button>
+                    `;
+                    previewContainer.appendChild(div);
+                }
+                reader.readAsDataURL(file);
+            }
+
+            window.removeImage = function(index, btn) {
+                selectedFiles[index] = null; // Mark as removed
+                btn.parentElement.remove();
+                updateFileInput();
+            }
+
+            function updateFileInput() {
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => {
+                    if (file !== null) {
+                        dt.items.add(file);
+                    }
+                });
+                fileInput.files = dt.files;
+            }
+        });
+    </script>
+}

@@ -1,0 +1,102 @@
+@model IEnumerable<SmartRoomFinder.Models.RoomModel>
+
+@{
+    ViewData["Title"] = "Phòng Trọ Yêu Thích";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1 poppins-title">Danh sách yêu thích ❤️</h2>
+            <p class="text-secondary mb-0">Lưu trữ các phòng trọ bạn quan tâm để dễ dàng so sánh và đưa ra quyết định.</p>
+        </div>
+        <a class="btn btn-premium-secondary btn-sm" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i> Tiếp tục tìm kiếm</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="glass-panel p-5 text-center">
+            <i class="fa-regular fa-heart display-1 text-secondary opacity-25 mb-4"></i>
+            <h4 class="text-secondary fw-bold">Danh sách yêu thích trống</h4>
+            <p class="text-muted small">Hãy nhấn biểu tượng tim ❤️ ở các phòng trọ ngoài trang chủ để lưu lại đây.</p>
+            <a class="btn btn-premium mt-3" asp-action="Index">Khám phá phòng trọ ngay</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var room in Model)
+            {
+                <div class="col-lg-4 col-md-6" id="wishlist-card-@room.Id">
+                    <div class="room-card-premium h-100 d-flex flex-column">
+                        <div class="room-card-img-wrapper">
+                            <span class="room-badge-premium badge-verified-light">
+                                <i class="fa-solid fa-circle-check me-1"></i> VERIFIED OWNER
+                            </span>
+                            <div class="wishlist-btn-premium active" onclick="removeFromWishlist(this, '@room.Id')">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <img src="@room.MainImageUrl" class="room-card-img" alt="Room" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80'">
+                        </div>
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <h5 class="fw-bold mb-1 text-truncate">@room.Title</h5>
+                            <p class="small text-secondary mb-3"><i class="fa-solid fa-location-dot text-danger me-1"></i> @room.Location</p>
+                            
+                            <!-- Bảng so sánh nhanh thông số -->
+                            <div class="p-3 bg-light rounded-3 small text-secondary mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Diện tích:</span>
+                                    <strong class="text-primary">@room.Area m²</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Số PN:</span>
+                                    <strong class="text-primary">@room.Bedrooms PN</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Đánh giá:</span>
+                                    <strong class="text-warning"><i class="fa-solid fa-star"></i> @room.Rating.ToString("0.0")</strong>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light">
+                                <div class="price-premium">
+                                    @room.Price.ToString("#,##0") <span class="small text-secondary fw-normal">đ/th</span>
+                                </div>
+                                <a class="btn btn-premium btn-sm px-3" asp-action="Detail" asp-route-id="@room.Id">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function removeFromWishlist(btn, roomId) {
+            fetch('/Home/ToggleFavorite/' + roomId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => {
+                if (res.ok) {
+                    const card = document.getElementById('wishlist-card-' + roomId);
+                    if (card) {
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            card.remove();
+                            if (document.querySelectorAll('[id^="wishlist-card-"]').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 400);
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    </script>
+}

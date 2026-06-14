@@ -1,0 +1,551 @@
+@model SmartRoomFinder.Models.RoomModel
+
+@{
+    ViewData["Title"] = Model.Title;
+    var isOwner = (bool)(ViewData["IsOwner"] ?? false);
+    var isRenter = (bool)(ViewData["IsRenter"] ?? false);
+    var reviews = ViewData["Reviews"] as List<SmartRoomFinder.Models.ReviewModel> ?? new();
+    var canReview = (bool)(ViewData["CanReview"] ?? false);
+}
+
+<div class="container mt-4 mb-5" style="max-width: 1400px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-secondary">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-secondary">Thuê Phòng trọ</a></li>
+            <li class="breadcrumb-item active text-dark" aria-current="page">@Model.Title</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- CỘT TRÁI: THÔNG TIN PHÒNG TRỌ -->
+        <div class="col-lg-8 animate-fade-in">
+            <div class="glass-panel p-4 mb-4" style="background: #FFFFFF;">
+                <!-- Gallery Premium -->
+                <div class="gallery-container mb-4">
+                    <!-- Main Image with Lightbox Trigger -->
+                    <div class="main-image-wrapper rounded-3 overflow-hidden position-relative shadow-sm bg-light" style="height: 400px; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#lightboxModal">
+                        <img id="galleryMainImage" src="@Model.MainImageUrl" class="w-100 h-100 object-fit-contain transition-base" alt="Ảnh chính" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80'">
+                        <div class="position-absolute bottom-0 end-0 m-3 bg-dark bg-opacity-75 text-white px-3 py-2 rounded-pill small" style="backdrop-filter: blur(5px);">
+                            <i class="fa-solid fa-expand me-1"></i> 1/@(Model.Images.Count + 1)
+                        </div>
+                    </div>
+
+                    <!-- Thumbnails Strip -->
+                    <div class="d-flex gap-2 mt-2 overflow-auto py-2 px-1 thumbnail-strip" style="white-space: nowrap;">
+                        <img src="@Model.MainImageUrl" class="rounded-3 gallery-thumb active border border-2 border-primary object-fit-cover cursor-pointer" style="width: 80px; height: 60px; flex-shrink: 0;" onclick="changeMainImage(this.src, this)" />
+                        @foreach (var img in Model.Images.OrderBy(i => i.SortOrder))
+                        {
+                            <img src="@img.Url" class="rounded-3 gallery-thumb border border-2 border-transparent object-fit-cover cursor-pointer opacity-75" style="width: 80px; height: 60px; flex-shrink: 0;" onclick="changeMainImage(this.src, this)" />
+                        }
+                    </div>
+                </div>
+            </div> <!-- End Image Gallery Box -->
+
+            <!-- Sticky Tab Navigation -->
+            <div class="sticky-top bg-white border-bottom mb-3" style="top: 85px; z-index: 1010;">
+                <ul class="nav nav-underline d-flex flex-nowrap overflow-auto px-2" style="white-space: nowrap;">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold text-dark" href="#tong-quan">Tổng quan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold text-secondary" href="#dac-diem">Đặc điểm</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold text-secondary" href="#mo-ta">Mô tả</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold text-secondary" href="#ban-do">Bản đồ</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tiêu đề & Thông tin cơ bản -->
+            <div id="tong-quan" class="glass-panel p-4 mb-3" style="background: #FFFFFF;">
+                <div class="mb-2 position-relative">
+                    <h1 class="fw-bold fs-4 mb-2">@Model.Title</h1>
+                    <div class="d-flex align-items-center mb-3 text-secondary small">
+                        <span class="me-3">@Model.Type.ToString()</span>
+                    </div>
+                    
+                    <div class="d-flex align-items-baseline mb-3">
+                        <span class="text-danger fw-bold fs-3 me-3">@Model.Price.ToString("#,##0") đ/tháng</span>
+                        <span class="fw-bold fs-6 text-dark">@Model.Area m²</span>
+                    </div>
+
+                    <div class="text-secondary small mb-2 d-flex align-items-start">
+                        <i class="fa-solid fa-location-dot mt-1 me-2 text-muted"></i>
+                        <span>@Model.Address</span>
+                    </div>
+                    
+                    <div class="text-secondary small d-flex align-items-center mb-3">
+                        <i class="fa-regular fa-clock me-2 text-muted"></i>
+                        <span>Cập nhật @Model.PostedAt.ToString("dd/MM/yyyy")</span>
+                    </div>
+                </div>
+            </div> <!-- End Tổng quan -->
+
+            <!-- Đặc điểm bất động sản -->
+            <div id="dac-diem" class="glass-panel p-4 mb-3" style="background: #FFFFFF;">
+                <h5 class="fw-bold mb-3">Đặc điểm bất động sản</h5>
+                <div class="row g-3 mb-4 text-dark small">
+                    <div class="col-md-6 d-flex justify-content-between align-items-center pb-2 border-bottom border-light">
+                        <span class="text-muted"><i class="fa-solid fa-ruler-combined me-2"></i>Diện tích</span>
+                        <span class="fw-bold">@Model.Area m²</span>
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-between align-items-center pb-2 border-bottom border-light">
+                        <span class="text-muted"><i class="fa-solid fa-couch me-2"></i>Tình trạng nội thất</span>
+                        <span class="fw-bold">Nội thất đầy đủ</span>
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-between align-items-center pb-2 border-bottom border-light">
+                        <span class="text-muted"><i class="fa-solid fa-money-bill-wave me-2"></i>Số tiền cọc</span>
+                        <span class="fw-bold">@Model.Price.ToString("#,##0") đ</span>
+                    </div>
+                    <div class="col-md-6 d-flex justify-content-between align-items-center pb-2 border-bottom border-light">
+                        <span class="text-muted"><i class="fa-solid fa-house me-2"></i>Loại hình</span>
+                        <span class="fw-bold">@Model.Type.ToString()</span>
+                    </div>
+                </div>
+
+            </div> <!-- End Đặc điểm -->
+
+            <!-- Mô tả chi tiết -->
+            <div id="mo-ta" class="glass-panel p-4 mb-3" style="background: #FFFFFF;">
+                <h5 class="fw-bold mb-3">Mô tả chi tiết</h5>
+                <p class="text-dark small" style="line-height: 1.8; white-space: pre-line;">@Model.Description</p>
+
+                <!-- Tiện ích -->
+                @if (Model.Amenities.Any())
+                {
+                    <h6 class="fw-bold mt-4 mb-3 fs-6">Tiện ích:</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        @foreach (var amenity in Model.Amenities)
+                        {
+                            <span class="badge bg-light text-dark border px-3 py-2 fw-normal rounded-pill"><i class="fa-solid fa-check text-success me-1"></i> @amenity</span>
+                        }
+                    </div>
+                }
+
+            </div> <!-- End Mô tả -->
+
+            <!-- Vị trí bản đồ -->
+            <div id="ban-do" class="glass-panel p-4 mb-4" style="background: #FFFFFF;">
+                <h5 class="fw-bold mb-3">Vị trí bản đồ</h5>
+                <div id="room-map" class="rounded-4 overflow-hidden position-relative border border-light shadow-sm" style="height: 300px; z-index: 1;">
+                    <!-- Leaflet Map renders here -->
+                </div>
+            </div> <!-- End Bản đồ -->
+
+            <!-- Gợi ý phòng tương tự (Carousel Style) -->
+            <div class="glass-panel p-4 mb-4" style="background: #FFFFFF;">
+                <h5 class="fw-bold mb-3 poppins-title">Tin đăng tương tự</h5>
+                
+                <!-- Horizontal Scroll Container -->
+                <div id="similarRoomsContainer" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 pb-3">
+                    <!-- Spinner -->
+                    <div class="w-100 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-secondary mt-2 small">Đang tìm kiếm phòng tương tự...</p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="@Url.Action("SimilarRooms", "Home", new { id = Model.Id })" class="btn btn-outline-secondary rounded-pill px-5 fw-bold bg-light border-light text-dark shadow-sm text-decoration-none">Xem thêm các "Tin đăng tương tự" ↓</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: CHỦ NHÀ & TƯƠNG TÁC -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 80px; z-index: 10;">
+                <!-- Card Chủ Nhà -->
+                <div class="glass-panel p-4 mb-4" style="background: #FFFFFF;">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://i.pravatar.cc/100?u=@Model.OwnerId" class="rounded-circle border me-3" style="width: 50px; height: 50px; object-fit: cover;" alt="Avatar">
+                        <div>
+                            <h6 class="mb-1 fw-bold text-dark">@Model.PostedBy</h6>
+                            <div class="small text-muted d-flex align-items-center">
+                                <span class="badge bg-light text-secondary border me-2" style="font-size: 0.65rem;">Cá nhân</span>
+                                <span><i class="fa-solid fa-circle text-success" style="font-size: 8px;"></i> Hoạt động 3 giờ trước</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-4 small text-secondary px-2">
+                        <div class="text-center">
+                            <span class="d-block fw-bold text-dark">1</span>
+                            <span style="font-size: 0.75rem;">Tin đăng</span>
+                        </div>
+                        <div class="border-end"></div>
+                        <div class="text-center">
+                            <span class="d-block fw-bold text-dark">2 năm</span>
+                            <span style="font-size: 0.75rem;">Tham gia</span>
+                        </div>
+                        <div class="border-end"></div>
+                        <div class="text-center">
+                            <span class="d-block fw-bold text-dark"><i class="fa-solid fa-check text-success"></i></span>
+                            <span style="font-size: 0.75rem;">Đã xác thực</span>
+                        </div>
+                    </div>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        if (isRenter)
+                        {
+                            <div class="d-flex gap-2 mb-3">
+                                <form asp-controller="Chat" asp-action="StartChat" method="post" class="w-50">
+                                    <input type="hidden" name="roomId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-light border w-100 fw-bold rounded-3 py-2 d-flex justify-content-center align-items-center text-dark">
+                                        <i class="fa-regular fa-comment-dots me-2 fs-5"></i> Chat
+                                    </button>
+                                </form>
+                                <button class="btn btn-success w-50 fw-bold rounded-3 py-2 d-flex justify-content-center align-items-center text-white" style="background-color: #f7701d; border-color: #f7701d;">
+                                    <i class="fa-solid fa-phone me-2"></i> 092878***
+                                </button>
+                            </div>
+
+                            <!-- Quick Message Form -->
+                            <div class="bg-light rounded-3 p-2 mb-3 border">
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control border-0 bg-transparent shadow-none small" placeholder="Nhắn hỏi thông tin...">
+                                    <button class="btn text-white rounded-3 small fw-bold px-3 py-1 m-1" style="background-color: #f7701d;">Gửi</button>
+                                </div>
+                                <div class="d-flex flex-nowrap overflow-auto gap-2 pb-1" style="white-space: nowrap;">
+                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill" style="cursor: pointer;">Có video không ạ?</span>
+                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill" style="cursor: pointer;">Điện nước giá sao?</span>
+                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill" style="cursor: pointer;">Phòng có máy lạnh?</span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-light border w-100 fw-bold text-secondary rounded-3 py-2 mt-2 text-center" data-bs-toggle="modal" data-bs-target="#applyModal">
+                                <i class="fa-solid fa-file-signature me-1"></i> Nộp đơn thuê phòng
+                            </button>
+                            
+                            <div class="mt-3 text-center">
+                                <a href="#" class="text-danger small text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#reportModal"><i class="fa-solid fa-triangle-exclamation me-1"></i> Báo cáo tin đăng</a>
+                            </div>
+                        }
+                        else if (isOwner)
+                        {
+                            <a class="btn btn-premium w-100 py-3 rounded-3" asp-controller="Room" asp-action="Manage">
+                                <i class="fa-solid fa-user-gear me-2"></i> Quản lý bài đăng của bạn
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <a class="btn w-100 py-2 rounded-3 text-white fw-bold mb-2" style="background-color: #f7701d;" asp-controller="Auth" asp-action="Login">
+                            Đăng nhập để liên hệ
+                        </a>
+                    }
+                </div>
+
+                <!-- Box Bình luận / Đánh giá -->
+                <div class="glass-panel p-4 mb-4" style="background: #FFFFFF;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Bình luận (@reviews.Count)</h6>
+                        <span class="badge bg-light text-warning border px-2 py-1"><i class="fa-solid fa-star me-1"></i>@Model.Rating.ToString("0.0")</span>
+                    </div>
+
+                    @if (!reviews.Any())
+                    {
+                        <div class="text-center py-4 text-muted border-top border-light mt-2">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fa-regular fa-comments fs-3 text-secondary opacity-50"></i>
+                            </div>
+                            <p class="small mb-0">Chưa có bình luận nào.<br>Hãy để lại bình luận cho người bán.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-3 mt-3 border-top border-light pt-3" style="max-height: 400px; overflow-y: auto;">
+                            @foreach (var review in reviews)
+                            {
+                                <div class="d-flex">
+                                    <img src="@review.UserAvatar" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.src='https://i.pravatar.cc/32?u=@review.UserId'">
+                                    <div class="bg-light rounded-3 p-2 w-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="fw-bold small">@review.UserName</span>
+                                            <span class="text-warning" style="font-size: 0.65rem;">
+                                                @for (int i = 0; i < review.Rating; i++) { <i class="fa-solid fa-star"></i> }
+                                            </span>
+                                        </div>
+                                        <p class="small text-secondary mb-0">@review.Comment</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (canReview)
+                    {
+                        <hr class="border-light my-3">
+                        <form asp-action="SubmitReview" method="post">
+                            <input type="hidden" name="roomId" value="@Model.Id" />
+                            <div class="mb-2">
+                                <select name="rating" class="form-select form-select-sm border-light bg-light" required>
+                                    <option value="5">5 Sao - Rất tốt</option>
+                                    <option value="4">4 Sao - Tốt</option>
+                                    <option value="3">3 Sao - Tạm được</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" name="comment" class="form-control form-control-sm border-light bg-light" placeholder="Bình luận của bạn..." required>
+                                <input type="hidden" name="university" value="Chưa cập nhật">
+                                <input type="hidden" name="duration" value="Đã thuê">
+                                <button type="submit" class="btn btn-sm text-white px-3" style="background-color: #f7701d;">Gửi</button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ứng tuyển thuê phòng -->
+@if (isRenter)
+{
+    <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+                <div class="modal-header border-light p-4 pb-2">
+                    <h5 class="modal-title fw-bold" id="applyModalLabel">Đơn xin thuê phòng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="Room" asp-action="Apply" method="post">
+                    <input type="hidden" name="roomId" value="@Model.Id" />
+                    <div class="modal-body p-4 pt-2">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">Lời nhắn gửi chủ trọ</label>
+                            <textarea name="message" class="form-control" rows="3" required>Tôi muốn thuê phòng này.</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">Số điện thoại liên hệ</label>
+                            <input type="tel" name="renterPhone" class="form-control" value="0901234567" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">Ngày dự kiến dọn vào ở</label>
+                            <input type="date" name="expectedMoveInDate" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-light p-3">
+                        <button type="button" class="btn btn-light text-secondary rounded-3" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn text-white rounded-3 fw-bold" style="background-color: #f7701d;">Gửi đơn</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Báo cáo vi phạm -->
+@if (User.Identity?.IsAuthenticated == true && isRenter)
+{
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+                <div class="modal-header border-light p-4 pb-2">
+                    <h5 class="modal-title fw-bold text-danger" id="reportModalLabel"><i class="fa-solid fa-triangle-exclamation me-2"></i>Báo cáo tin đăng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="Home" asp-action="SubmitReport" method="post">
+                    <input type="hidden" name="roomId" value="@Model.Id" />
+                    <div class="modal-body p-4 pt-2">
+                        <div class="alert alert-warning small mb-3">
+                            <i class="fa-solid fa-circle-info me-1"></i> Báo cáo của bạn sẽ được gửi ẩn danh cho Admin để xử lý.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">Lý do báo cáo</label>
+                            <select name="reason" class="form-select" required>
+                                <option value="">-- Chọn lý do --</option>
+                                <option value="Phòng đã cho thuê">Phòng đã cho thuê nhưng chưa gỡ</option>
+                                <option value="Thông tin sai sự thật">Thông tin/hình ảnh sai sự thật</option>
+                                <option value="Có dấu hiệu lừa đảo">Có dấu hiệu lừa đảo/thu tiền cọc trái phép</option>
+                                <option value="Khác">Lý do khác</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">Mô tả chi tiết (Tùy chọn)</label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="Mô tả cụ thể vấn đề bạn gặp phải..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-light p-3">
+                        <button type="button" class="btn btn-light text-secondary rounded-3" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger rounded-3 fw-bold">Gửi Báo Cáo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Lightbox Modal -->
+<div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+        <div class="modal-content bg-dark" style="--bs-bg-opacity: .9;">
+            <div class="modal-header border-0 position-absolute top-0 end-0 z-3 p-4">
+                <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 d-flex align-items-center justify-content-center h-100">
+                <div id="lightboxCarousel" class="carousel slide w-100 h-100" data-bs-ride="carousel">
+                    <div class="carousel-inner h-100 d-flex align-items-center">
+                        <div class="carousel-item active w-100 h-100">
+                            <img src="@Model.MainImageUrl" class="d-block w-100 h-100 object-fit-contain" alt="Ảnh chính">
+                        </div>
+                        @foreach (var img in Model.Images.OrderBy(i => i.SortOrder))
+                        {
+                            <div class="carousel-item w-100 h-100">
+                                <img src="@img.Url" class="d-block w-100 h-100 object-fit-contain" alt="Ảnh phụ">
+                            </div>
+                        }
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#lightboxCarousel" data-bs-slide="prev" style="width: 10%;">
+                        <span class="carousel-control-prev-icon fs-1" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#lightboxCarousel" data-bs-slide="next" style="width: 10%;">
+                        <span class="carousel-control-next-icon fs-1" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { background-color: #f4f4f4; }
+        .gallery-thumb { transition: all 0.2s ease; cursor: pointer; }
+        .gallery-thumb:hover { opacity: 1 !important; transform: scale(1.05); }
+        .gallery-thumb.active { opacity: 1 !important; border-color: #f7701d !important; transform: scale(1.05); }
+        .thumbnail-strip::-webkit-scrollbar { height: 6px; }
+        .thumbnail-strip::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .glass-panel { border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); }
+        
+        /* Tương tự carousel scrolling */
+        .similar-scroll::-webkit-scrollbar { height: 0px; }
+        .similar-card { transition: all 0.2s ease; border-radius: 8px; }
+        .similar-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .btn-outline-success { color: #f7701d; border-color: #f7701d; }
+        .btn-outline-success:hover { background-color: #f7701d; color: white; border-color: #f7701d; }
+    </style>
+    <script>
+        function changeMainImage(src, element) {
+            document.getElementById('galleryMainImage').src = src;
+            document.querySelectorAll('.gallery-thumb').forEach(el => {
+                el.classList.remove('active', 'border-primary');
+                el.classList.add('border-transparent', 'opacity-75');
+            });
+            element.classList.add('active');
+            element.classList.remove('border-transparent', 'opacity-75');
+            
+            // Sync lightbox
+            const carouselElement = document.getElementById('lightboxCarousel');
+            const carousel = bootstrap.Carousel.getOrCreateInstance(carouselElement);
+            const items = carouselElement.querySelectorAll('.carousel-item img');
+            let indexToSlide = 0;
+            items.forEach((img, index) => {
+                if (img.src === src) {
+                    indexToSlide = index;
+                }
+            });
+            carousel.to(indexToSlide);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Leaflet Map
+            var lat = @Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var lng = @Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            
+            var map = L.map('room-map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            var customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: "<i class='fa-solid fa-location-dot text-danger' style='font-size: 32px; filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));'></i>",
+                iconSize: [30, 42],
+                iconAnchor: [15, 42]
+            });
+
+            L.marker([lat, lng], {icon: customIcon}).addTo(map)
+                .bindPopup('<b class="text-primary">@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Title))</b><br><small class="text-secondary">@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Address))</small>')
+                .openPopup();
+            // Load similar rooms
+            fetch(`/api/recommendations/similar/@Model.Id?limit=6`)
+                .then(response => response.json())
+                .then(res => {
+                    const container = document.getElementById('similarRoomsContainer');
+                    if (res.success && res.data.length > 0) {
+                        // Helper for time ago
+                        const timeAgo = (dateString) => {
+                            const date = new Date(dateString);
+                            const span = Math.floor((new Date() - date) / 1000);
+                            if (span > 31536000) return Math.floor(span / 31536000) + ' năm trước';
+                            if (span > 2592000) return Math.floor(span / 2592000) + ' tháng trước';
+                            if (span > 86400) return Math.floor(span / 86400) + ' ngày trước';
+                            if (span > 3600) return Math.floor(span / 3600) + ' giờ trước';
+                            if (span > 60) return Math.floor(span / 60) + ' phút trước';
+                            return 'Vừa xong';
+                        };
+
+                        let html = '';
+                        res.data.forEach(room => {
+                            const verifiedBadge = room.isVerified ? '<span class="badge bg-warning text-dark me-1" style="font-size: 0.7rem;"><i class="fa-solid fa-star me-1"></i>Đối tác</span>' : '';
+                            const areaDisplay = room.area > 0 ? `<span class="ms-2 text-dark small">${room.area} m²</span>` : `<span class="ms-2 text-muted small fst-italic">Đang cập nhật</span>`;
+                            const timeText = timeAgo(room.postedAt);
+
+                            html += `
+                                <div class="col">
+                                    <div class="card similar-card border-light h-100 overflow-hidden text-decoration-none shadow-sm">
+                                        <div class="position-relative" style="height: 160px;">
+                                            <img src="${room.mainImageUrl}" class="w-100 h-100 object-fit-cover" alt="${room.title}" onerror="this.src='/images/default_room.png'">
+                                            <div class="position-absolute bottom-0 start-0 m-2">
+                                                <span class="badge bg-dark bg-opacity-75 text-white fw-normal"><i class="fa-solid fa-camera me-1"></i>4</span>
+                                            </div>
+                                            <div class="position-absolute top-0 end-0 m-2">
+                                                <button class="btn btn-sm btn-light rounded-circle text-secondary p-1 px-2 opacity-75 shadow-none border-0"><i class="fa-regular fa-heart"></i></button>
+                                            </div>
+                                            <div class="position-absolute bottom-0 end-0 m-2">
+                                                <span class="text-white small fw-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${timeText}</span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-3 d-flex flex-column">
+                                            <h6 class="card-title mb-1 text-dark" style="font-size: 0.9rem; line-height: 1.4; height: 2.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${room.title}">
+                                                ${verifiedBadge}
+                                                <a href="/Home/Detail/${room.id}" class="text-dark text-decoration-none stretched-link">${room.title}</a>
+                                            </h6>
+                                            <div class="d-flex align-items-baseline mb-2 mt-1">
+                                                <div class="text-danger fw-bold" style="font-size: 1rem;">${room.price.toLocaleString('vi-VN')} đ/tháng</div>
+                                                ${areaDisplay}
+                                            </div>
+                                            <div class="small text-muted mb-2 text-end" style="font-size: 0.8rem;">
+                                                <span>${room.matchReason === 'Khớp với yêu cầu tìm kiếm' ? 'Tương tự' : 'Gợi ý'}</span>
+                                            </div>
+                                            <div class="mt-auto small text-muted d-flex align-items-start" style="font-size: 0.75rem;">
+                                                <i class="fa-solid fa-location-dot mt-1 me-1"></i>
+                                                <span class="text-truncate" style="white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${room.address}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<div class="w-100 text-center py-4 text-muted small">Không tìm thấy phòng tương tự nào.</div>';
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('similarRoomsContainer').innerHTML = '<div class="w-100 text-center py-4 text-danger small">Lỗi tải dữ liệu.</div>';
+                });
+        });
+    </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+}
