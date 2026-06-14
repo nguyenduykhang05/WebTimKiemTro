@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 using SmartRoomFinder.Models.DTOs;
 using SmartRoomFinder.Services;
 

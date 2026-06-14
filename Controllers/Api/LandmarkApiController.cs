@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 using SmartRoomFinder.Models.DTOs;
 using System.Linq;
 using System.Threading.Tasks;

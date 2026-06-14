@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 using SmartRoomFinder.Models.ViewModels;
 using SmartRoomFinder.Services.Interfaces;
 using System;

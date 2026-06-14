@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartRoomFinder.Helpers;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 using SmartRoomFinder.Models.DTOs;
 using System;
 using System.Linq;

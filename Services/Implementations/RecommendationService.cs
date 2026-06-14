@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 using SmartRoomFinder.Models.DTOs;
 using SmartRoomFinder.Services.Interfaces;
+using SmartRoomFinder.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +46,7 @@ namespace SmartRoomFinder.Services.Implementations
             foreach (var room in candidates)
             {
                 // 1. Location Similarity (Haversine)
-                double distance = CalculateHaversineDistance(currentRoom.Latitude, currentRoom.Longitude, room.Latitude, room.Longitude);
+                double distance = HaversineHelper.CalculateDistance(currentRoom.Latitude, currentRoom.Longitude, room.Latitude, room.Longitude);
                 if (distance > maxDistKm) continue; // skip if really outside 5km after haversine check
 
                 double sLocation = Math.Max(0, 1.0 - (distance / maxDistKm));
@@ -93,27 +95,51 @@ namespace SmartRoomFinder.Services.Implementations
             return recommendations;
         }
 
-        public Task<List<RecommendedRoomDto>> GetRecommendationsForUserAsync(string userId, int limit = 10)
+        public async Task<List<RecommendedRoomDto>> GetRecommendationsForUserAsync(string userId, int limit = 10)
         {
-            // Future implementation for Collaborative Filtering
-            throw new NotImplementedException();
+            var user = await _context.Users.FindAsync(userId);
+            var query = _context.Rooms.Where(r => r.IsActive && r.IsVerified);
+
+            // If user has a location, prioritize it
+            if (user != null && !string.IsNullOrEmpty(user.Location))
+            {
+                var userLocation = user.Location.ToLower();
+                var locationMatches = await query.Where(r => r.Address.ToLower().Contains(userLocation))
+                                                 .OrderByDescending(r => r.Rating)
+                                                 .ThenByDescending(r => r.ViewCount)
+                                                 .Take(limit)
+                                                 .ToListAsync();
+                
+                if (locationMatches.Count >= limit)
+                {
+                    return MapToDto(locationMatches);
+                }
+            }
+
+            // Fallback to top rated overall
+            var topRooms = await query.OrderByDescending(r => r.Rating)
+                                      .ThenByDescending(r => r.ViewCount)
+                                      .Take(limit)
+                                      .ToListAsync();
+                                      
+            return MapToDto(topRooms);
         }
 
-        private double CalculateHaversineDistance(double lat1, double lon1, double lat2, double lon2)
+        private List<RecommendedRoomDto> MapToDto(List<RoomModel> rooms)
         {
-            const double R = 6371; // Earth radius in km
-            var dLat = ToRadians(lat2 - lat1);
-            var dLon = ToRadians(lon2 - lon1);
-            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                    Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return R * c;
-        }
-
-        private double ToRadians(double angle)
-        {
-            return Math.PI * angle / 180.0;
+            return rooms.Select(r => new RecommendedRoomDto
+            {
+                Id = r.Id,
+                Title = r.Title,
+                Price = r.Price,
+                Area = r.Area,
+                Address = r.Address,
+                MainImageUrl = r.MainImageUrl,
+                SimilarityScore = r.Rating > 0 ? (r.Rating / 5.0) * 100 : 80,
+                MatchReason = "Dựa trên đánh giá và lượt xem nổi bật",
+                PostedAt = r.PostedAt,
+                IsVerified = r.IsVerified
+            }).ToList();
         }
 
         private double CalculateJaccardSimilarity(HashSet<string> setA, HashSet<string> setB)

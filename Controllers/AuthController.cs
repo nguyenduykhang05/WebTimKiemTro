@@ -9,8 +9,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 using System.Net;
 using System.Net.Mail;
+
+using Microsoft.AspNetCore.Identity;
 
 namespace SmartRoomFinder.Controllers
 {
@@ -19,12 +22,14 @@ namespace SmartRoomFinder.Controllers
         private readonly AppDbContext _context;
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _configuration;
+        private readonly IPasswordHasher<UserModel> _passwordHasher;
 
-        public AuthController(AppDbContext context, IMemoryCache cache, IConfiguration configuration)
+        public AuthController(AppDbContext context, IMemoryCache cache, IConfiguration configuration, IPasswordHasher<UserModel> passwordHasher)
         {
             _context = context;
             _cache = cache;
             _configuration = configuration;
+            _passwordHasher = passwordHasher;
         }
 
         [HttpGet]
@@ -40,15 +45,26 @@ namespace SmartRoomFinder.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // Simple credential verification for testing/demo
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Email không tồn tại trong hệ thống mẫu.");
+                ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
+                return View();
+            }
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                ModelState.AddModelError(string.Empty, "Tài khoản của bạn là tài khoản cũ chưa có mật khẩu. Vui lòng sử dụng tính năng 'Quên mật khẩu' để thiết lập mật khẩu mới.");
                 return View();
             }
 
-            // In demo/test, any password will work, but let's check
+            // Verify password
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+            if (result == PasswordVerificationResult.Failed)
+            {
+                ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
+                return View();
+            }
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
@@ -77,7 +93,7 @@ namespace SmartRoomFinder.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string name, string email, string phone, UserRole role)
+        public async Task<IActionResult> Register(string name, string email, string phone, string password, UserRole role)
         {
             if (await _context.Users.AnyAsync(u => u.Email == email))
             {
@@ -93,6 +109,8 @@ namespace SmartRoomFinder.Controllers
                 Role = role,
                 HasSelectedRole = true
             };
+            
+            newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
 
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
@@ -269,10 +287,12 @@ namespace SmartRoomFinder.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user != null)
             {
-                // In a real system, update password hash here.
-                // _context.Users.Update(user);
-                // await _context.SaveChangesAsync();
+                user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
+                await _context.SaveChangesAsync();
                 
+                // Remove OTP after successful reset
+                _cache.Remove($"OTP_{email}");
+
                 TempData["SuccessMessage"] = "Khôi phục mật khẩu thành công! Vui lòng đăng nhập lại.";
                 return RedirectToAction("Login");
             }

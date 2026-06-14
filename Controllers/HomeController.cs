@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 
 using SmartRoomFinder.Services.Interfaces;
 
@@ -72,11 +73,6 @@ namespace SmartRoomFinder.Controllers
 
             var rooms = await query.OrderByDescending(r => r.PostedAt).ToListAsync();
 
-            ViewData["Search"] = search;
-            ViewData["Location"] = location;
-            ViewData["MaxPrice"] = maxPrice;
-            ViewData["Rating"] = rating;
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var favoriteRoomIds = new List<string>();
             if (userId != null)
@@ -94,6 +90,7 @@ namespace SmartRoomFinder.Controllers
             ViewData["Type"] = type;
             ViewData["MaxPrice"] = maxPrice;
             ViewData["MinArea"] = minArea;
+            ViewData["Rating"] = rating;
 
             return View(rooms);
         }

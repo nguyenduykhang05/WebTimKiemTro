@@ -13,6 +13,9 @@ namespace SmartRoomFinder.Models.ViewModels
         public int NeedInfoRoomsCount { get; set; }
         public int SupportRequestsCount { get; set; }
         
+        public Dictionary<string, int> MonthlyNewRooms { get; set; } = new();
+        public Dictionary<string, int> MonthlyTotalViews { get; set; } = new();
+        
         public IEnumerable<RoomModel> PendingRooms { get; set; } = new List<RoomModel>();
         public IEnumerable<RoomModel> RecentVerifiedRooms { get; set; } = new List<RoomModel>();
         public IEnumerable<ReviewModel> RecentReviews { get; set; } = new List<ReviewModel>();

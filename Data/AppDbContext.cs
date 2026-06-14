@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace SmartRoomFinder.Models
+using SmartRoomFinder.Models;
+
+namespace SmartRoomFinder.Data
 {
     public class AppDbContext : DbContext
     {

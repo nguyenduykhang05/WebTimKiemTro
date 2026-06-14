@@ -1,3 +1,4 @@
+using SmartRoomFinder.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,6 +61,19 @@ namespace SmartRoomFinder.Models
                 };
 
                 context.Users.AddRange(users);
+                context.SaveChanges();
+            }
+
+            // Ensure test accounts have a password
+            var passwordHasher = new Microsoft.AspNetCore.Identity.PasswordHasher<UserModel>();
+            var testEmails = new[] { "vana@example.com", "tranthib@example.com", "vanc@example.com", "admin@example.com" };
+            var usersWithoutPassword = context.Users.Where(u => testEmails.Contains(u.Email) && string.IsNullOrEmpty(u.PasswordHash)).ToList();
+            if (usersWithoutPassword.Any())
+            {
+                foreach(var u in usersWithoutPassword)
+                {
+                    u.PasswordHash = passwordHasher.HashPassword(u, "123456");
+                }
                 context.SaveChanges();
             }
 

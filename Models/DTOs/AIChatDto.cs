@@ -18,6 +18,8 @@ namespace SmartRoomFinder.Models.DTOs
 
     public class ParsedIntentDto
     {
+        public string? ReplyMessage { get; set; }
+        public bool HasFilters { get; set; }
         public string? Location { get; set; }
         public string? Landmark { get; set; }
         public double? MinPrice { get; set; }

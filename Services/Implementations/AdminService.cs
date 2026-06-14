@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartRoomFinder.Models;
+using SmartRoomFinder.Data;
 using SmartRoomFinder.Models.ViewModels;
 using SmartRoomFinder.Services.Interfaces;
 using System;
@@ -37,6 +38,21 @@ namespace SmartRoomFinder.Services.Implementations
             var totalUsers = await _context.Users.CountAsync();
             var totalReports = await _context.Reports.CountAsync();
 
+            var last6Months = Enumerable.Range(0, 6).Select(i => DateTime.UtcNow.AddMonths(-i).ToString("MM/yyyy")).Reverse().ToList();
+            var monthlyNewRooms = new Dictionary<string, int>();
+            var monthlyTotalViews = new Dictionary<string, int>();
+
+            foreach (var month in last6Months)
+            {
+                var monthDate = DateTime.ParseExact(month, "MM/yyyy", null);
+                var roomsInMonth = await _context.Rooms
+                    .Where(r => r.PostedAt.Year == monthDate.Year && r.PostedAt.Month == monthDate.Month)
+                    .ToListAsync();
+
+                monthlyNewRooms[month] = roomsInMonth.Count;
+                monthlyTotalViews[month] = roomsInMonth.Sum(r => r.ViewCount);
+            }
+
             return new AdminDashboardViewModel
             {
                 TotalUsers = totalUsers,
@@ -47,6 +63,9 @@ namespace SmartRoomFinder.Services.Implementations
                 RejectedRoomsCount = rejectedRoomsCount,
                 NeedInfoRoomsCount = needInfoRoomsCount,
                 SupportRequestsCount = 0,
+                
+                MonthlyNewRooms = monthlyNewRooms,
+                MonthlyTotalViews = monthlyTotalViews,
                 
                 PendingRooms = rooms.Where(r => r.ApprovalStatus == RoomStatus.Pending),
                 RecentVerifiedRooms = rooms.Where(r => r.ApprovalStatus == RoomStatus.Verified).Take(10),

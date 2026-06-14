@@ -13,15 +13,15 @@ using SmartRoomFinder.Data;
 namespace SmartRoomFinder.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260613182117_AddSystemSettings")]
-    partial class AddSystemSettings
+    [Migration("20260614041130_AddPasswordHash")]
+    partial class AddPasswordHash
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "10.0.0-rc.1.25451.107")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -612,6 +612,10 @@ namespace SmartRoomFinder.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
