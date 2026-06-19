@@ -29,6 +29,16 @@
 
         <button type="submit" class="btn btn-premium w-100 py-3 fw-bold mb-3">Đăng Nhập</button>
         
+        <div class="position-relative mt-3 mb-4">
+            <hr class="text-muted" />
+            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted small fw-bold">HOẶC</span>
+        </div>
+
+        <a asp-action="LoginWithGoogle" class="btn btn-outline-dark w-100 py-2 mb-3 fw-bold d-flex align-items-center justify-content-center" style="border-radius: 12px; gap: 10px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width: 20px;" />
+            Tiếp tục với Google
+        </a>
+        
         <p class="text-center small text-secondary">
             Chưa có tài khoản? <a asp-action="Register" class="text-info text-decoration-none fw-bold">Đăng ký ngay</a>
         </p>

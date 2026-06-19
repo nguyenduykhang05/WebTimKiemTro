@@ -44,6 +44,7 @@ namespace SmartRoomFinder.Services.Implementations
                 Title = model.Title,
                 Description = model.Description,
                 Price = model.Price,
+                DepositAmount = model.DepositAmount,
                 Address = model.Address,
                 Location = model.Location,
                 Type = model.Type,
@@ -109,6 +110,7 @@ namespace SmartRoomFinder.Services.Implementations
             room.Title = model.Title;
             room.Description = model.Description;
             room.Price = model.Price;
+            room.DepositAmount = model.DepositAmount;
             room.Address = model.Address;
             room.Location = model.Location;
             room.Type = model.Type;

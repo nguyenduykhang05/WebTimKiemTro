@@ -1,0 +1,89 @@
+@model IEnumerable<SmartRoomFinder.Models.DepositModel>
+@{
+    ViewData["Title"] = "Quản lý Đặt cọc";
+    var isLandlord = User.IsInRole("Landlord");
+}
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--primary-navy);">
+                <i class="fa-solid fa-money-bill-wave me-2 text-success"></i>
+                @(isLandlord ? "Quản lý Cọc của Khách" : "Lịch sử Đặt cọc")
+            </h2>
+            <p class="text-secondary">@((isLandlord) ? "Theo dõi các khoản cọc khách hàng đã thanh toán cho phòng của bạn." : "Danh sách các phòng bạn đã đặt cọc giữ chỗ.")</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="glass-panel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Phòng</th>
+                                @if(isLandlord) { <th>Người thuê</th> }
+                                <th>Số tiền</th>
+                                <th>Ngày tạo</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        Không có dữ liệu đặt cọc nào.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-secondary">#@item.OrderCode</span></td>
+                                        <td>
+                                            @if (item.Room != null)
+                                            {
+                                                <a asp-controller="Home" asp-action="Detail" asp-route-id="@item.RoomId" class="text-decoration-none fw-bold">@item.Room.Title</a>
+                                            }
+                                        </td>
+                                        @if(isLandlord)
+                                        {
+                                            <td>@(item.Renter?.Name ?? item.Renter?.Email)</td>
+                                        }
+                                        <td class="fw-bold text-success">@item.Amount.ToString("N0") VNĐ</td>
+                                        <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @switch (item.Status)
+                                            {
+                                                case SmartRoomFinder.Models.DepositStatus.Pending:
+                                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-clock"></i> Chờ thanh toán</span>
+                                                    break;
+                                                case SmartRoomFinder.Models.DepositStatus.Paid:
+                                                    <span class="badge bg-success"><i class="fa-solid fa-check"></i> Đã thanh toán</span>
+                                                    break;
+                                                case SmartRoomFinder.Models.DepositStatus.Refunded:
+                                                    <span class="badge bg-danger"><i class="fa-solid fa-xmark"></i> Đã hủy</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Home" asp-action="Detail" asp-route-id="@item.RoomId" class="btn btn-sm btn-outline-primary">
+                                                <i class="fa-solid fa-eye"></i> Xem phòng
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

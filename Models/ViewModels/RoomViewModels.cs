@@ -18,6 +18,10 @@ namespace SmartRoomFinder.Models.ViewModels
         [Range(0, double.MaxValue, ErrorMessage = "Giá thuê phải lớn hơn hoặc bằng 0.")]
         public double Price { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng nhập số tiền cọc yêu cầu.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Số tiền cọc phải lớn hơn hoặc bằng 0.")]
+        public double DepositAmount { get; set; } = 500000;
+
         public string Address { get; set; } = string.Empty;
         public string Location { get; set; } = "TP. Ho Chi Minh";
 

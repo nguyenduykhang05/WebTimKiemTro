@@ -1,0 +1,204 @@
+@model IEnumerable<SmartRoomFinder.Models.DepositModel>
+@using SmartRoomFinder.Models
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Đặt Cọc";
+    ViewData["Subtitle"] = "Theo dõi và quản lý giao dịch đặt cọc phòng trọ.";
+
+    var totalDeposits = Model.Count();
+    var paidDeposits = Model.Count(d => d.Status == DepositStatus.Paid);
+    var disbursedDeposits = Model.Count(d => d.Status == DepositStatus.Completed);
+    var refundedDeposits = Model.Count(d => d.Status == DepositStatus.Refunded);
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Quick Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-primary me-3">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Tổng giao dịch</p>
+                <h4 class="fw-bold mb-0 text-dark">@totalDeposits</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-warning me-3">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Đã thanh toán (Chờ xử lý)</p>
+                <h4 class="fw-bold mb-0 text-dark">@paidDeposits</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-success me-3">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Đã chuyển cọc</p>
+                <h4 class="fw-bold mb-0 text-dark">@disbursedDeposits</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-danger me-3">
+                <i class="fa-solid fa-rotate-left"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Đã hoàn tiền</p>
+                <h4 class="fw-bold mb-0 text-dark">@refundedDeposits</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card border-0 mb-4">
+    <div class="admin-card-header d-flex justify-content-between align-items-center p-3 border-bottom">
+        <h6 class="mb-0 fw-bold">Danh sách Đặt Cọc</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table mb-0 align-middle">
+            <thead class="bg-light text-muted small text-uppercase">
+                <tr>
+                    <th class="ps-4">Mã Giao Dịch</th>
+                    <th>Phòng Trọ</th>
+                    <th>Người Thuê</th>
+                    <th>Số Tiền</th>
+                    <th>Ngày Tạo</th>
+                    <th>Trạng Thái</th>
+                    <th class="text-end pe-4">Hành Động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-folder-open fs-1 mb-3 opacity-50"></i>
+                            <p class="mb-0">Chưa có dữ liệu đặt cọc.</p>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var deposit in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark">#@deposit.OrderCode</span>
+                            </td>
+                            <td>
+                                @if (deposit.Room != null)
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <img src="@deposit.Room.MainImageUrl" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.src='/images/default_room.png'" />
+                                        <a href="/Home/Detail/@deposit.RoomId" target="_blank" class="text-dark text-decoration-none fw-bold" style="font-size: 0.85rem; max-width: 200px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@deposit.Room.Title">
+                                            @deposit.Room.Title
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Phòng đã xóa</span>
+                                }
+                            </td>
+                            <td>
+                                @if (deposit.Renter != null)
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <div class="admin-user-avatar-small me-2">
+                                            @deposit.Renter.Name.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.85rem;">@deposit.Renter.Name</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">@deposit.Renter.Email</div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Người dùng đã xóa</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-bold text-danger">@deposit.Amount.ToString("#,##0") đ</span>
+                            </td>
+                            <td>
+                                <span class="text-muted" style="font-size: 0.85rem;">@deposit.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                            </td>
+                            <td>
+                                @if (deposit.Status == DepositStatus.Pending)
+                                {
+                                    <span class="badge bg-secondary text-white rounded-pill fw-normal px-2 py-1"><i class="fa-solid fa-clock me-1"></i>Chờ thanh toán</span>
+                                }
+                                else if (deposit.Status == DepositStatus.Paid)
+                                {
+                                    <span class="badge bg-warning text-dark rounded-pill fw-normal px-2 py-1"><i class="fa-solid fa-check me-1"></i>Đã thanh toán</span>
+                                }
+                                else if (deposit.Status == DepositStatus.Refunded)
+                                {
+                                    <span class="badge bg-danger text-white rounded-pill fw-normal px-2 py-1"><i class="fa-solid fa-rotate-left me-1"></i>Đã hoàn tiền</span>
+                                }
+                                else if (deposit.Status == DepositStatus.Completed)
+                                {
+                                    <span class="badge bg-success text-white rounded-pill fw-normal px-2 py-1"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Đã chuyển cọc</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                @if (deposit.Status == DepositStatus.Paid)
+                                {
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-ellipsis-vertical text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 10px;">
+                                            <li>
+                                                <form asp-action="TransferDeposit" method="post">
+                                                    <input type="hidden" name="id" value="@deposit.Id" />
+                                                    <button type="submit" class="dropdown-item py-2 text-success" onclick="return confirm('Xác nhận CHUYỂN CỌC cho chủ trọ?');">
+                                                        <i class="fa-solid fa-money-bill-transfer me-2"></i> Chuyển cho Chủ Trọ
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form asp-action="RefundDeposit" method="post">
+                                                    <input type="hidden" name="id" value="@deposit.Id" />
+                                                    <button type="submit" class="dropdown-item py-2 text-danger" onclick="return confirm('Xác nhận HOÀN CỌC cho người thuê?');">
+                                                        <i class="fa-solid fa-rotate-left me-2"></i> Hoàn tiền Người Thuê
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-light rounded-circle" disabled>
+                                        <i class="fa-solid fa-ellipsis-vertical text-muted opacity-25"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

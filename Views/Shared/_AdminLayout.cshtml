@@ -40,6 +40,9 @@
             <a class="admin-nav-item @(action == "ManageUsers" ? "active" : "")" asp-controller="Admin" asp-action="ManageUsers">
                 <i class="fa-solid fa-user-group"></i> Người dùng
             </a>
+            <a class="admin-nav-item @(action == "ManageDeposits" ? "active" : "")" asp-controller="Admin" asp-action="ManageDeposits">
+                <i class="fa-solid fa-money-check-dollar"></i> Quản lý Đặt cọc
+            </a>
             <a class="admin-nav-item @(action == "Reports" ? "active" : "")" asp-controller="Admin" asp-action="Reports">
                 <i class="fa-solid fa-chart-simple"></i> Báo cáo
             </a>

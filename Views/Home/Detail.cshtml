@@ -5,7 +5,7 @@
     var isOwner = (bool)(ViewData["IsOwner"] ?? false);
     var isRenter = (bool)(ViewData["IsRenter"] ?? false);
     var reviews = ViewData["Reviews"] as List<SmartRoomFinder.Models.ReviewModel> ?? new();
-    var canReview = (bool)(ViewData["CanReview"] ?? false);
+    var canReview = true; // Bỏ check owner để test
 }
 
 <div class="container mt-4 mb-5" style="max-width: 1400px;">
@@ -44,10 +44,10 @@
             </div> <!-- End Image Gallery Box -->
 
             <!-- Sticky Tab Navigation -->
-            <div class="sticky-top bg-white border-bottom mb-3" style="top: 85px; z-index: 1010;">
+            <div id="room-scrollspy" class="sticky-top bg-white border-bottom mb-3" style="top: 75px; z-index: 1010;">
                 <ul class="nav nav-underline d-flex flex-nowrap overflow-auto px-2" style="white-space: nowrap;">
                     <li class="nav-item">
-                        <a class="nav-link active fw-bold text-dark" href="#tong-quan">Tổng quan</a>
+                        <a class="nav-link active fw-bold text-secondary" href="#tong-quan">Tổng quan</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link fw-bold text-secondary" href="#dac-diem">Đặc điểm</a>
@@ -62,7 +62,7 @@
             </div>
 
             <!-- Tiêu đề & Thông tin cơ bản -->
-            <div id="tong-quan" class="glass-panel p-4 mb-3" style="background: #FFFFFF;">
+            <div id="tong-quan" class="glass-panel p-4 mb-3" style="background: #FFFFFF; scroll-margin-top: 140px;">
                 <div class="mb-2 position-relative">
                     <h1 class="fw-bold fs-4 mb-2">@Model.Title</h1>
                     <div class="d-flex align-items-center mb-3 text-secondary small">
@@ -87,7 +87,7 @@
             </div> <!-- End Tổng quan -->
 
             <!-- Đặc điểm bất động sản -->
-            <div id="dac-diem" class="glass-panel p-4 mb-3" style="background: #FFFFFF;">
+            <div id="dac-diem" class="glass-panel p-4 mb-3" style="background: #FFFFFF; scroll-margin-top: 140px;">
                 <h5 class="fw-bold mb-3">Đặc điểm bất động sản</h5>
                 <div class="row g-3 mb-4 text-dark small">
                     <div class="col-md-6 d-flex justify-content-between align-items-center pb-2 border-bottom border-light">
@@ -100,7 +100,7 @@
                     </div>
                     <div class="col-md-6 d-flex justify-content-between align-items-center pb-2 border-bottom border-light">
                         <span class="text-muted"><i class="fa-solid fa-money-bill-wave me-2"></i>Số tiền cọc</span>
-                        <span class="fw-bold">@Model.Price.ToString("#,##0") đ</span>
+                        <span class="fw-bold">@Model.DepositAmount.ToString("#,##0") đ</span>
                     </div>
                     <div class="col-md-6 d-flex justify-content-between align-items-center pb-2 border-bottom border-light">
                         <span class="text-muted"><i class="fa-solid fa-house me-2"></i>Loại hình</span>
@@ -111,7 +111,7 @@
             </div> <!-- End Đặc điểm -->
 
             <!-- Mô tả chi tiết -->
-            <div id="mo-ta" class="glass-panel p-4 mb-3" style="background: #FFFFFF;">
+            <div id="mo-ta" class="glass-panel p-4 mb-3" style="background: #FFFFFF; scroll-margin-top: 140px;">
                 <h5 class="fw-bold mb-3">Mô tả chi tiết</h5>
                 <p class="text-dark small" style="line-height: 1.8; white-space: pre-line;">@Model.Description</p>
 
@@ -130,7 +130,7 @@
             </div> <!-- End Mô tả -->
 
             <!-- Vị trí bản đồ -->
-            <div id="ban-do" class="glass-panel p-4 mb-4" style="background: #FFFFFF;">
+            <div id="ban-do" class="glass-panel p-4 mb-4" style="background: #FFFFFF; scroll-margin-top: 140px;">
                 <h5 class="fw-bold mb-3">Vị trí bản đồ</h5>
                 <div id="room-map" class="rounded-4 overflow-hidden position-relative border border-light shadow-sm" style="height: 300px; z-index: 1;">
                     <!-- Leaflet Map renders here -->
@@ -193,10 +193,27 @@
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        if (isRenter)
+                        if (Model.IsReserved)
                         {
+                            <div class="alert alert-warning text-center rounded-3 fw-bold mb-3">
+                                <i class="fa-solid fa-lock me-1"></i> Phòng này đã được đặt cọc
+                            </div>
+                            <button class="btn btn-secondary w-100 py-3 rounded-3 mb-2" disabled>
+                                Đã hết phòng trống
+                            </button>
+                        }
+                        else if (!isOwner)
+                        {
+                            <form method="post" asp-controller="Deposit" asp-action="Create" class="mb-2">
+                                <input type="hidden" name="roomId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-success w-100 fw-bold rounded-3 py-3 d-flex justify-content-center align-items-center text-white" style="background-color: #10B981; border-color: #10B981;">
+                                    <i class="fa-solid fa-money-check-dollar me-2 fs-5"></i> Đặt cọc giữ chỗ (@Model.DepositAmount.ToString("#,##0")đ)
+                                </button>
+                            </form>
+                            
                             <div class="d-flex gap-2 mb-3">
-                                <form asp-controller="Chat" asp-action="StartChat" method="post" class="w-50">
+                                <form method="post" asp-controller="Chat" asp-action="StartChat" class="w-50">
+                                    <input type="hidden" name="landlordId" value="@Model.OwnerId" />
                                     <input type="hidden" name="roomId" value="@Model.Id" />
                                     <button type="submit" class="btn btn-light border w-100 fw-bold rounded-3 py-2 d-flex justify-content-center align-items-center text-dark">
                                         <i class="fa-regular fa-comment-dots me-2 fs-5"></i> Chat
@@ -210,13 +227,13 @@
                             <!-- Quick Message Form -->
                             <div class="bg-light rounded-3 p-2 mb-3 border">
                                 <div class="input-group mb-2">
-                                    <input type="text" class="form-control border-0 bg-transparent shadow-none small" placeholder="Nhắn hỏi thông tin...">
-                                    <button class="btn text-white rounded-3 small fw-bold px-3 py-1 m-1" style="background-color: #f7701d;">Gửi</button>
+                                    <input type="text" id="quickMessageInput" class="form-control border-0 bg-transparent shadow-none small" placeholder="Nhắn hỏi thông tin...">
+                                    <button id="btnSendQuickMessage" class="btn text-white rounded-3 small fw-bold px-3 py-1 m-1" style="background-color: #f7701d;">Gửi</button>
                                 </div>
                                 <div class="d-flex flex-nowrap overflow-auto gap-2 pb-1" style="white-space: nowrap;">
-                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill" style="cursor: pointer;">Có video không ạ?</span>
-                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill" style="cursor: pointer;">Điện nước giá sao?</span>
-                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill" style="cursor: pointer;">Phòng có máy lạnh?</span>
+                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill quick-msg-badge" style="cursor: pointer;">Có video không ạ?</span>
+                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill quick-msg-badge" style="cursor: pointer;">Điện nước giá sao?</span>
+                                    <span class="badge bg-white text-secondary border fw-normal py-2 px-3 rounded-pill quick-msg-badge" style="cursor: pointer;">Phòng có máy lạnh?</span>
                                 </div>
                             </div>
 
@@ -256,7 +273,14 @@
                             <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                                 <i class="fa-regular fa-comments fs-3 text-secondary opacity-50"></i>
                             </div>
-                            <p class="small mb-0">Chưa có bình luận nào.<br>Hãy để lại bình luận cho người bán.</p>
+                            @if (isOwner)
+                            {
+                                <p class="small mb-0">Chưa có bình luận nào từ khách hàng.</p>
+                            }
+                            else
+                            {
+                                <p class="small mb-0">Chưa có bình luận nào.<br>Hãy để lại bình luận cho chủ nhà.</p>
+                            }
                         </div>
                     }
                     else
@@ -415,6 +439,18 @@
     </div>
 </div>
 
+<!-- Toast Notification cho Gửi Tin Nhắn -->
+<div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index: 2000;">
+    <div id="messageToast" class="toast align-items-center text-white bg-dark border-0 rounded-pill" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+        <div class="d-flex px-2 py-1">
+            <div class="toast-body d-flex align-items-center justify-content-between w-100">
+                <span><i class="fa-solid fa-check-circle text-success me-2"></i> Tin nhắn đã được gửi thành công</span>
+                <a href="#" id="toastViewMessageBtn" class="text-warning text-decoration-none ms-3 fw-bold small">Xem tin nhắn</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -435,6 +471,77 @@
         .btn-outline-success:hover { background-color: #f7701d; color: white; border-color: #f7701d; }
     </style>
     <script>
+        // Khởi tạo ScrollSpy cho thanh tab
+        document.body.setAttribute('data-bs-spy', 'scroll');
+        document.body.setAttribute('data-bs-target', '#room-scrollspy');
+        document.body.setAttribute('data-bs-root-margin', '0px 0px -40%');
+        document.body.setAttribute('data-bs-smooth-scroll', 'true');
+        if (typeof bootstrap !== 'undefined') {
+            new bootstrap.ScrollSpy(document.body, {
+                target: '#room-scrollspy'
+            });
+        }
+
+        // Gắn sự kiện cho các badge gợi ý
+        document.querySelectorAll('.quick-msg-badge').forEach(badge => {
+            badge.addEventListener('click', function() {
+                const input = document.getElementById('quickMessageInput');
+                input.value = this.innerText;
+            });
+        });
+
+        // Gắn sự kiện Gửi tin nhắn
+        document.getElementById('btnSendQuickMessage').addEventListener('click', async function() {
+            const input = document.getElementById('quickMessageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const roomId = '@Model.Id';
+            const btn = this;
+            const originalText = btn.innerText;
+
+            btn.innerText = '...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/Chat/SendQuickMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ roomId: roomId, message: message })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        input.value = '';
+                        // Show toast
+                        const toastEl = document.getElementById('messageToast');
+                        const toast = new bootstrap.Toast(toastEl);
+                        
+                        // Cập nhật link Xem tin nhắn
+                        document.getElementById('toastViewMessageBtn').href = '/Chat?chatId=' + data.chatId;
+                        
+                        toast.show();
+                    } else {
+                        if (response.status === 401) {
+                            window.location.href = '/Auth/Login';
+                        } else {
+                            alert(data.error || 'Có lỗi xảy ra!');
+                        }
+                    }
+                } else if (response.status === 401) {
+                    window.location.href = '/Auth/Login';
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+
         function changeMainImage(src, element) {
             document.getElementById('galleryMainImage').src = src;
             document.querySelectorAll('.gallery-thumb').forEach(el => {

@@ -7,6 +7,7 @@ using SmartRoomFinder.Services.Interfaces;
 using SmartRoomFinder.Services.Implementations;
 using SmartRoomFinder.Hubs;
 using SmartRoomFinder.Services;
+using PayOS;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LogoutPath = "/Auth/Logout";
         options.AccessDeniedPath = "/Auth/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    })
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/Auth/Login?error=access_denied");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
     });
 
 // Register Business Services
@@ -47,6 +59,19 @@ builder.Services.AddSession(options =>
 // Register SignalR
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IUserConnectionManager, UserConnectionManager>();
+builder.Services.AddHttpContextAccessor();
+
+// Add PayOS
+PayOSClient payOS = new PayOSClient(
+    builder.Configuration["PayOS:ClientId"],
+    builder.Configuration["PayOS:ApiKey"],
+    builder.Configuration["PayOS:ChecksumKey"]
+);
+builder.Services.AddSingleton(payOS);
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+// Add Hosted Services
+builder.Services.AddHostedService<DepositExpiryWorker>();
 
 // Add Memory Cache
 builder.Services.AddMemoryCache();

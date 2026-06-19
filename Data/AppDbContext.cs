@@ -24,6 +24,7 @@ namespace SmartRoomFinder.Data
         public DbSet<UserFavoriteRoomModel> UserFavorites { get; set; } = null!;
         public DbSet<SupportTicketModel> SupportTickets { get; set; } = null!;
         public DbSet<SystemSettingModel> SystemSettings { get; set; } = null!;
+        public DbSet<DepositModel> Deposits { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

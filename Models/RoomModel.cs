@@ -71,6 +71,8 @@ namespace SmartRoomFinder.Models
         [Range(0, double.MaxValue)]
         public double Price { get; set; }
 
+        public double DepositAmount { get; set; } = 500000;
+
         public string Address { get; set; } = string.Empty;
 
         public string Location { get; set; } = "TP. Ho Chi Minh";
@@ -126,6 +128,8 @@ namespace SmartRoomFinder.Models
         public DateTime? ExpiresAt { get; set; }
 
         public RoomStatus ApprovalStatus { get; set; } = RoomStatus.Pending;
+
+        public bool IsReserved { get; set; } = false;
 
         // Store List<RoomDocument> as JSON in SQLite
         public string DocumentsJson { get; set; } = "[]";

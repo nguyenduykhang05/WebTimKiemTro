@@ -36,15 +36,19 @@
                     </div>
 
                     <!-- Giá & Diện tích & Số phòng ngủ -->
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label text-secondary small fw-bold">Giá thuê (VNĐ/tháng)</label>
                         <input type="number" asp-for="Price" class="form-control form-premium-control" required />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label text-secondary small fw-bold">Tiền cọc (VNĐ)</label>
+                        <input type="number" asp-for="DepositAmount" class="form-control form-premium-control" required />
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label text-secondary small fw-bold">Diện tích (m²)</label>
                         <input type="number" step="0.1" asp-for="Area" class="form-control form-premium-control" required />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label text-secondary small fw-bold">Số phòng ngủ</label>
                         <input type="number" asp-for="Bedrooms" class="form-control form-premium-control" required />
                     </div>

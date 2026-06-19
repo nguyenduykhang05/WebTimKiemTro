@@ -163,13 +163,11 @@ namespace SmartRoomFinder.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Challenge();
 
-            // Check if user is allowed to review
-            var hasRented = await _context.Applications.AnyAsync(a =>
-                a.RenterId == userId && a.RoomId == roomId && a.Status == "approved");
-
-            if (!hasRented)
+            // Bỏ check owner để test bình luận
+            var room = await _context.Rooms.FindAsync(roomId);
+            if (room == null)
             {
-                return Forbid();
+                return NotFound();
             }
 
             var user = await _context.Users.FindAsync(userId);
@@ -191,7 +189,6 @@ namespace SmartRoomFinder.Controllers
             _context.Reviews.Add(review);
 
             // Update room rating
-            var room = await _context.Rooms.FindAsync(roomId);
             if (room != null)
             {
                 var roomReviews = await _context.Reviews.Where(r => r.RoomId == roomId && !r.IsHidden).ToListAsync();

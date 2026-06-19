@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartRoomFinder.Data;
 
@@ -11,9 +12,11 @@ using SmartRoomFinder.Data;
 namespace SmartRoomFinder.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616164047_AddDepositFeature")]
+    partial class AddDepositFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -461,9 +464,6 @@ namespace SmartRoomFinder.Migrations
 
                     b.Property<int>("ContactCount")
                         .HasColumnType("int");
-
-                    b.Property<double>("DepositAmount")
-                        .HasColumnType("float");
 
                     b.Property<string>("Description")
                         .IsRequired()

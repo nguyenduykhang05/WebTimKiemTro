@@ -198,5 +198,47 @@ namespace SmartRoomFinder.Controllers
             var reports = await _context.Reports.ToListAsync();
             return View(reports);
         }
+        // --- DEPOSITS MANAGEMENT ---
+        public async Task<IActionResult> ManageDeposits()
+        {
+            var deposits = await _context.Deposits
+                .Include(d => d.Room)
+                .Include(d => d.Renter)
+                .OrderByDescending(d => d.CreatedAt)
+                .ToListAsync();
+            return View(deposits);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RefundDeposit(string id)
+        {
+            var deposit = await _context.Deposits.FindAsync(id);
+            if (deposit == null) return NotFound();
+
+            if (deposit.Status == DepositStatus.Paid)
+            {
+                deposit.Status = DepositStatus.Refunded;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Đã hoàn cọc cho người thuê thành công.";
+            }
+
+            return RedirectToAction(nameof(ManageDeposits));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TransferDeposit(string id)
+        {
+            var deposit = await _context.Deposits.FindAsync(id);
+            if (deposit == null) return NotFound();
+
+            if (deposit.Status == DepositStatus.Paid)
+            {
+                deposit.Status = DepositStatus.Completed;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Đã chuyển cọc cho chủ trọ thành công.";
+            }
+
+            return RedirectToAction(nameof(ManageDeposits));
+        }
     }
 }

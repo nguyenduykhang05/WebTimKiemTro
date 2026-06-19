@@ -64,15 +64,22 @@ namespace SmartRoomFinder.Models
                 context.SaveChanges();
             }
 
-            // Ensure test accounts have a password
+            // Ensure test accounts have a password and HasSelectedRole is true
             var passwordHasher = new Microsoft.AspNetCore.Identity.PasswordHasher<UserModel>();
             var testEmails = new[] { "vana@example.com", "tranthib@example.com", "vanc@example.com", "admin@example.com" };
-            var usersWithoutPassword = context.Users.Where(u => testEmails.Contains(u.Email) && string.IsNullOrEmpty(u.PasswordHash)).ToList();
-            if (usersWithoutPassword.Any())
+            var usersNeedsUpdate = context.Users.Where(u => testEmails.Contains(u.Email) && (string.IsNullOrEmpty(u.PasswordHash) || !u.HasSelectedRole)).ToList();
+            if (usersNeedsUpdate.Any())
             {
-                foreach(var u in usersWithoutPassword)
+                foreach(var u in usersNeedsUpdate)
                 {
-                    u.PasswordHash = passwordHasher.HashPassword(u, "123456");
+                    if (string.IsNullOrEmpty(u.PasswordHash))
+                    {
+                        u.PasswordHash = passwordHasher.HashPassword(u, "123456");
+                    }
+                    if (!u.HasSelectedRole)
+                    {
+                        u.HasSelectedRole = true;
+                    }
                 }
                 context.SaveChanges();
             }

@@ -32,13 +32,16 @@
             padding: 30px;
         }
         body.dark-theme .bg-white,
-        body.dark-theme .bg-light {
+        body.dark-theme .bg-light,
+        body.dark-theme .btn-light,
+        body.dark-theme .map-header {
             background-color: var(--bg-light-gray) !important;
             border-color: var(--border-gray) !important;
             color: var(--text-primary) !important;
         }
         body.dark-theme .text-dark { color: var(--text-primary) !important; }
-        body.dark-theme .text-secondary { color: var(--text-secondary) !important; }
+        body.dark-theme .text-secondary,
+        body.dark-theme .text-muted { color: var(--text-secondary) !important; }
         body.dark-theme .form-control, body.dark-theme .form-select, body.dark-theme .search-bar-floating {
             background-color: var(--bg-light-gray) !important;
             border-color: var(--border-gray) !important;
@@ -58,8 +61,8 @@
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+    <header class="sticky-top" style="z-index: 1030;">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
                     <!-- Home Logo Icon matching mockup -->
@@ -73,60 +76,43 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                                Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Tìm phòng</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Map" ? "active" : "")" asp-controller="Home" asp-action="Map">Bản đồ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Blog" ? "active" : "")" asp-controller="Home" asp-action="Blog">Blog</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Contact" ? "active" : "")" asp-controller="Home" asp-action="Contact">Liên hệ</a>
+                        </li>
+
                         @if (User.IsInRole("Landlord"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Room" asp-action="Dashboard">
-                                    <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
+                            <li class="nav-item ms-lg-3">
+                                <a class="nav-link text-warning fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Room" asp-action="Dashboard">
+                                    <i class="fa-solid fa-chart-pie me-1"></i> Quản lý
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Manage" ? "active" : "")" asp-controller="Room" asp-action="Manage">
-                                    <i class="fa-solid fa-list-check me-1"></i> Quản lý phòng
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Applications" ? "active" : "")" asp-controller="Room" asp-action="Applications">
-                                    <i class="fa-solid fa-file-invoice me-1"></i> Đơn thuê phòng
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-warning fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "active" : "")" asp-controller="Room" asp-action="Create">
-                                    <i class="fa-solid fa-plus me-1"></i> Đăng tin mới
+                                <a class="btn btn-warning btn-sm ms-lg-2 mt-lg-1 mb-2 mb-lg-0 rounded-pill px-3 text-white fw-bold shadow-sm" style="background-color: #f7701d; border-color: #f7701d;" asp-controller="Room" asp-action="Create">
+                                    <i class="fa-solid fa-plus me-1"></i> Đăng tin
                                 </a>
                             </li>
                         }
                         else if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
+                            <li class="nav-item ms-lg-3">
                                 <a class="nav-link text-danger fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Admin" asp-action="Dashboard">
-                                    <i class="fa-solid fa-shield-halved me-1"></i> Trang Quản Trị
+                                    <i class="fa-solid fa-shield-halved me-1"></i> Quản Trị
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Admin" asp-action="Dashboard" asp-route-status="Pending">
-                                    <i class="fa-solid fa-check-double me-1"></i> Duyệt Phòng
-                                </a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
-                                    Trang chủ
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Home" asp-action="Index">Tìm phòng</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Map" ? "active" : "")" asp-controller="Home" asp-action="Map">Bản đồ</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Blog" ? "active" : "")" asp-controller="Home" asp-action="Blog">Blog</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Contact" ? "active" : "")" asp-controller="Home" asp-action="Contact">Liên hệ</a>
                             </li>
                         }
                     </ul>
@@ -168,6 +154,11 @@
                                     <li>
                                         <a class="dropdown-item text-white rounded-3 py-2" asp-controller="Auth" asp-action="ChooseRole">
                                             <i class="fa-solid fa-arrows-spin me-2 text-info"></i> Đổi vai trò
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-white rounded-3 py-2" asp-controller="Deposit" asp-action="Index">
+                                            <i class="fa-solid fa-money-bill-wave me-2 text-success"></i> Quản lý cọc
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider border-secondary"></li>

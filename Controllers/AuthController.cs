@@ -33,12 +33,18 @@ namespace SmartRoomFinder.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? error = null)
         {
             if (User.Identity?.IsAuthenticated == true)
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            if (error == "access_denied")
+            {
+                ModelState.AddModelError(string.Empty, "Bạn đã hủy đăng nhập bằng Google.");
+            }
+
             return View();
         }
 
@@ -73,6 +79,70 @@ namespace SmartRoomFinder.Controllers
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties { IsPersistent = true };
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+
+            if (!user.HasSelectedRole)
+            {
+                return RedirectToAction("ChooseRole");
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult LoginWithGoogle()
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleCallback") };
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, "Đăng nhập bằng Google thất bại.");
+                return RedirectToAction("Login");
+            }
+
+            var email = authenticateResult.Principal.FindFirstValue(ClaimTypes.Email);
+            var name = authenticateResult.Principal.FindFirstValue(ClaimTypes.Name);
+            var nameIdentifier = authenticateResult.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(email))
+            {
+                ModelState.AddModelError(string.Empty, "Không thể lấy Email từ Google.");
+                return RedirectToAction("Login");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                // Register new user
+                user = new UserModel
+                {
+                    Name = name ?? email,
+                    Email = email,
+                    Role = UserRole.Renter, // Default
+                    HasSelectedRole = false,
+                    PasswordHash = "" // No password since they use Google
+                };
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+
+            // Update claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
+            };
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties { IsPersistent = true };
 

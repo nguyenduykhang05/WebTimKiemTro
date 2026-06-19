@@ -103,12 +103,14 @@ namespace SmartRoomFinder.Controllers
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (currentUserId == null) return Challenge();
 
+            if (currentUserId == room.OwnerId) return BadRequest("Chủ nhà không thể tự nhắn tin cho phòng của mình.");
+
             var landlord = await _context.Users.FindAsync(room.OwnerId);
             var landlordName = landlord?.Name ?? "Chủ trọ";
             var currentUserName = User.Identity?.Name ?? "Người thuê";
 
             var chat = await _context.Chats.FirstOrDefaultAsync(c =>
-                c.RoomId == room.Id && c.RenterId == currentUserId && c.OwnerId == room.OwnerId);
+                c.RenterId == currentUserId && c.OwnerId == room.OwnerId);
 
             if (chat == null)
             {
@@ -142,8 +144,88 @@ namespace SmartRoomFinder.Controllers
                 _context.Messages.Add(firstMsg);
                 await _context.SaveChangesAsync();
             }
+            else
+            {
+                chat.RoomId = room.Id;
+                chat.RoomTitle = room.Title;
+                chat.RoomImageUrl = room.MainImageUrl;
+                chat.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
 
             return RedirectToAction("Index", new { chatId = chat.Id });
         }
+
+        [HttpPost]
+        public async Task<IActionResult> SendQuickMessage([FromBody] QuickMessageRequest req)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId == null) return Unauthorized(new { error = "Please login first" });
+
+            if (string.IsNullOrWhiteSpace(req.Message)) return BadRequest(new { error = "Message empty" });
+
+            var room = await _context.Rooms.FindAsync(req.RoomId);
+            if (room == null) return NotFound(new { error = "Room not found" });
+
+            if (currentUserId == room.OwnerId) return BadRequest(new { error = "Chủ nhà không thể tự nhắn tin cho phòng của mình." });
+
+            var landlord = await _context.Users.FindAsync(room.OwnerId);
+            var landlordName = landlord?.Name ?? "Chủ trọ";
+            var currentUserName = User.Identity?.Name ?? "Người thuê";
+
+            var chat = await _context.Chats.FirstOrDefaultAsync(c =>
+                c.RenterId == currentUserId && c.OwnerId == room.OwnerId);
+
+            if (chat == null)
+            {
+                chat = new ChatModel
+                {
+                    RoomId = room.Id,
+                    RoomTitle = room.Title,
+                    RoomImageUrl = room.MainImageUrl,
+                    OwnerId = room.OwnerId,
+                    OwnerName = landlordName,
+                    RenterId = currentUserId,
+                    RenterName = currentUserName,
+                    LastMessage = req.Message,
+                    LastMessageTime = DateTime.UtcNow,
+                    LastSenderId = currentUserId,
+                    Participants = new List<string> { currentUserId, room.OwnerId },
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.Chats.Add(chat);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                chat.RoomId = room.Id;
+                chat.RoomTitle = room.Title;
+                chat.RoomImageUrl = room.MainImageUrl;
+                chat.LastMessage = req.Message;
+                chat.LastMessageTime = DateTime.UtcNow;
+                chat.LastSenderId = currentUserId;
+                chat.UpdatedAt = DateTime.UtcNow;
+            }
+
+            var msg = new MessageModel
+            {
+                ChatId = chat.Id,
+                SenderId = currentUserId,
+                SenderName = currentUserName,
+                Text = req.Message,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Messages.Add(msg);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, chatId = chat.Id });
+        }
+    }
+
+    public class QuickMessageRequest
+    {
+        public string RoomId { get; set; } = "";
+        public string Message { get; set; } = "";
     }
 }

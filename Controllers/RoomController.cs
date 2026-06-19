@@ -94,6 +94,7 @@ namespace SmartRoomFinder.Controllers
                 Title = room.Title,
                 Description = room.Description,
                 Price = room.Price,
+                DepositAmount = room.DepositAmount,
                 Address = room.Address,
                 Location = room.Location,
                 Type = room.Type,
