@@ -6,10 +6,13 @@
 
 <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
     <h3 class="fw-bold"><i class="fa-solid fa-hotel text-info me-2"></i>Phòng Trọ Bạn Đã Đăng</h3>
-    <a class="btn btn-premium" asp-action="Create"><i class="fa-solid fa-plus me-1"></i> Đăng phòng mới</a>
+    <div>
+        <a class="btn btn-warning text-dark fw-bold me-2" asp-controller="ServicePricing" asp-action="Index"><i class="fa-solid fa-crown me-1"></i> Nâng cấp tài khoản</a>
+        <a class="btn btn-premium" asp-action="Create"><i class="fa-solid fa-plus me-1"></i> Đăng phòng mới</a>
+    </div>
 </div>
 
-<div class="glass-panel p-4 mb-5">
+<div class="card border border-secondary border-opacity-10 shadow-sm mb-5" style="border-radius: 1.2rem; overflow: hidden;">
     @if (!Model.Any())
     {
         <div class="text-center py-5">
@@ -21,48 +24,74 @@
     else
     {
         <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0">
-                <thead>
-                    <tr class="text-secondary">
-                        <th>Hình ảnh</th>
-                        <th>Tiêu đề phòng</th>
-                        <th>Khu vực</th>
-                        <th>Giá thuê</th>
-                        <th>Lượt xem</th>
-                        <th>Liên hệ</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead class="table-light">
+                    <tr>
+                        <th class="py-3 px-4 border-bottom text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">Hình ảnh</th>
+                        <th class="py-3 border-bottom text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">Tiêu đề phòng</th>
+                        <th class="py-3 border-bottom text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">Khu vực</th>
+                        <th class="py-3 border-bottom text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">Giá thuê</th>
+                        <th class="py-3 border-bottom text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">Lượt xem</th>
+                        <th class="py-3 border-bottom text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">Trạng thái duyệt</th>
+                        <th class="py-3 border-bottom text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">Gói dịch vụ</th>
+                        <th class="py-3 px-4 border-bottom text-uppercase text-secondary text-center" style="font-size: 0.7rem; letter-spacing: 0.5px;">Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="border-top-0">
                     @foreach (var room in Model)
                     {
                         <tr>
-                            <td>
-                                <img src="@room.MainImageUrl" class="rounded" style="width: 70px; height: 50px; object-fit: cover;" alt="Cover" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=70&q=80'">
+                            <td class="px-4 py-3">
+                                <img src="@room.MainImageUrl" class="rounded-3 shadow-sm border" style="width: 80px; height: 55px; object-fit: cover;" alt="Cover" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=80&q=80'">
                             </td>
                             <td>
-                                <div class="fw-bold text-truncate" style="max-width: 250px;">@room.Title</div>
-                                <span class="small text-secondary">@room.Type.ToString() - @room.Area m²</span>
+                                <div class="fw-bold text-truncate text-dark" style="max-width: 220px; font-size: 0.95rem;">@room.Title</div>
+                                <span class="badge bg-light text-secondary border mt-1 fw-normal">@room.Type.ToString() • @room.Area m²</span>
                             </td>
-                            <td>@room.Location</td>
-                            <td><span class="text-info fw-bold">@room.Price.ToString("#,##0") đ</span></td>
-                            <td><i class="fa-solid fa-eye text-secondary me-1"></i> @room.ViewCount</td>
-                            <td><i class="fa-solid fa-phone text-secondary me-1"></i> @room.ContactCount</td>
+                            <td><span class="text-secondary fw-medium"><i class="fa-solid fa-location-dot text-danger me-1"></i>@room.Location</span></td>
+                            <td><span class="text-primary fw-bold" style="font-size: 0.95rem;">@room.Price.ToString("#,##0") đ</span></td>
                             <td>
-                                <span class="badge @(room.ApprovalStatus switch {
-                                    SmartRoomFinder.Models.RoomStatus.Verified => "badge-verified",
-                                    SmartRoomFinder.Models.RoomStatus.Pending => "badge-pending",
-                                    SmartRoomFinder.Models.RoomStatus.NeedsInfo => "bg-warning bg-opacity-25 text-warning border border-warning",
-                                    _ => "badge-rejected"
+                                <div class="d-flex align-items-center text-secondary">
+                                    <i class="fa-solid fa-eye me-2"></i> <span class="fw-bold text-dark">@room.ViewCount</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill px-3 py-2 fw-bold shadow-sm @(room.ApprovalStatus switch {
+                                    SmartRoomFinder.Models.RoomStatus.Verified => "bg-success bg-opacity-10 text-success border border-success border-opacity-25",
+                                    SmartRoomFinder.Models.RoomStatus.Pending => "bg-info bg-opacity-10 text-info border border-info border-opacity-25",
+                                    SmartRoomFinder.Models.RoomStatus.NeedsInfo => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25",
+                                    _ => "bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25"
                                 })">
+                                    <i class="fa-solid @(room.ApprovalStatus == SmartRoomFinder.Models.RoomStatus.Verified ? "fa-check-circle" : room.ApprovalStatus == SmartRoomFinder.Models.RoomStatus.Pending ? "fa-clock" : "fa-circle-exclamation") me-1"></i>
                                     @room.ApprovalStatus.ToString()
                                 </span>
                             </td>
                             <td>
-                                <div class="d-flex gap-2">
-                                    <a class="btn btn-premium-secondary btn-sm" asp-controller="Home" asp-action="Detail" asp-route-id="@room.Id"><i class="fa-solid fa-circle-info"></i> Xem</a>
-                                    <a class="btn btn-premium btn-sm" asp-action="Edit" asp-route-id="@room.Id"><i class="fa-solid fa-pen-to-square"></i> Sửa</a>
+                                <div class="d-flex flex-column">
+                                    <div class="fw-bold mb-1 @(room.Package == SmartRoomFinder.Models.RoomPackage.VipNoiBat ? "text-danger" : room.Package == SmartRoomFinder.Models.RoomPackage.Default ? "text-secondary" : "text-primary")">
+                                        <i class="fa-solid fa-crown"></i> @room.Package.ToString()
+                                    </div>
+                                    @if (room.ExpiresAt.HasValue)
+                                    {
+                                        if (room.IsExpired)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger fw-normal" style="width: fit-content;"><i class="fa-solid fa-clock"></i> Đã hết hạn</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success fw-normal" style="width: fit-content;"><i class="fa-solid fa-clock"></i> Còn @room.DaysLeft ngày</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning fw-normal" style="width: fit-content;">Chưa thanh toán</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="px-4">
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <a class="btn btn-light border btn-sm rounded-circle d-flex justify-content-center align-items-center shadow-sm" style="width: 35px; height: 35px;" title="Xem chi tiết" asp-controller="Home" asp-action="Detail" asp-route-id="@room.Id"><i class="fa-solid fa-eye text-primary"></i></a>
+                                    <a class="btn btn-primary btn-sm rounded-circle d-flex justify-content-center align-items-center shadow-sm" style="width: 35px; height: 35px;" title="Sửa bài viết" asp-action="Edit" asp-route-id="@room.Id"><i class="fa-solid fa-pen"></i></a>
                                 </div>
                             </td>
                         </tr>

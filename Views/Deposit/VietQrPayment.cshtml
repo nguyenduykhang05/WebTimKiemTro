@@ -1,0 +1,63 @@
+@model SmartRoomFinder.Models.DepositModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Thanh Toán Đặt Cọc VietQR";
+    var landlord = ViewBag.Landlord as SmartRoomFinder.Models.UserModel;
+    // URL VietQR dynamic generation
+    // https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<ACCOUNT_NAME>
+    var addInfo = Uri.EscapeDataString($"DAT COC PHONG {Model.Room.Title.ToUpper()}");
+    var accountName = Uri.EscapeDataString(landlord.BankAccountHolder ?? "");
+    var qrUrl = $"https://img.vietqr.io/image/{landlord.BankName}-{landlord.BankAccountNumber}-qr_only.png?amount={(long)Model.Amount}&addInfo={addInfo}&accountName={accountName}";
+}
+
+<div class="container py-5" style="max-width: 600px;">
+    <div class="glass-panel p-4 shadow-lg rounded-4 text-center">
+        <h4 class="fw-bold mb-1"><i class="fa-solid fa-qrcode text-primary me-2"></i> Chuyển Khoản Đặt Cọc VietQR</h4>
+        <p class="text-secondary small">Vui lòng quét mã QR dưới đây hoặc chuyển khoản thủ công để hoàn tất đặt cọc phòng.</p>
+        
+        <hr class="opacity-20 my-3">
+        
+        <!-- QR Code Display -->
+        <div class="bg-white p-3 rounded-4 d-inline-block shadow-sm mb-4 border border-light">
+            <img src="@qrUrl" alt="VietQR Code" class="img-fluid" style="width: 250px; height: 250px; object-fit: contain;" />
+            <div class="mt-2 text-dark small fw-bold">
+                <i class="fa-solid fa-expand me-1"></i> Quét để thanh toán nhanh
+            </div>
+        </div>
+
+        <!-- Chi tiết tài khoản nhận tiền -->
+        <div class="p-3 rounded-3 mb-4 text-start small" style="background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0,0,0,0.05);">
+            <div class="row g-2">
+                <div class="col-5 text-muted">Ngân hàng thụ hưởng:</div>
+                <div class="col-7 fw-bold">@landlord.BankName</div>
+                
+                <div class="col-5 text-muted">Số tài khoản:</div>
+                <div class="col-7 fw-bold font-monospace">@landlord.BankAccountNumber</div>
+
+                <div class="col-5 text-muted">Tên chủ tài khoản:</div>
+                <div class="col-7 fw-bold text-uppercase">@landlord.BankAccountHolder</div>
+
+                <div class="col-5 text-muted">Số tiền cọc:</div>
+                <div class="col-7 fw-bold text-danger">@Model.Amount.ToString("#,##0") VNĐ</div>
+
+                <div class="col-5 text-muted">Nội dung chuyển khoản:</div>
+                <div class="col-7 fw-bold text-primary font-monospace">DAT COC PHONG @Model.Room.Title.ToUpper()</div>
+            </div>
+        </div>
+
+        <div class="alert alert-info rounded-3 text-start small py-2 mb-4">
+            <i class="fa-solid fa-circle-info me-1 text-primary"></i> <strong>Lưu ý:</strong> Tiền cọc sẽ được chuyển <strong>trực tiếp 100%</strong> vào tài khoản ngân hàng cá nhân của chủ nhà. Hệ thống không giữ hoặc thu phí giao dịch này.
+        </div>
+
+        <!-- Hành động -->
+        <form asp-action="ConfirmVietQrPayment" method="post">
+            <input type="hidden" name="depositId" value="@Model.Id" />
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success py-3 rounded-3 fw-bold shadow-sm">
+                    <i class="fa-solid fa-circle-check me-2"></i> Tôi đã chuyển khoản thành công
+                </button>
+                <a href="/Home/Detail/@Model.RoomId" class="btn btn-outline-secondary rounded-3 py-2">Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>

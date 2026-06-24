@@ -119,6 +119,8 @@ namespace SmartRoomFinder.Controllers
                 return RedirectToAction("Login");
             }
 
+            var picture = authenticateResult.Principal.FindFirstValue("urn:google:picture");
+
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
@@ -127,11 +129,17 @@ namespace SmartRoomFinder.Controllers
                 {
                     Name = name ?? email,
                     Email = email,
+                    ProfileImageUrl = picture,
                     Role = UserRole.Renter, // Default
                     HasSelectedRole = false,
                     PasswordHash = "" // No password since they use Google
                 };
                 _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+            else if (!string.IsNullOrEmpty(picture) && (string.IsNullOrEmpty(user.ProfileImageUrl) || user.ProfileImageUrl == "/images/default_avatar.png"))
+            {
+                user.ProfileImageUrl = picture;
                 await _context.SaveChangesAsync();
             }
 
@@ -183,6 +191,20 @@ namespace SmartRoomFinder.Controllers
             newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
 
             _context.Users.Add(newUser);
+            
+            // Tạo thông báo chào mừng
+            var welcomeNotification = new NotificationModel
+            {
+                UserId = newUser.Id,
+                Title = "Chào mừng thành viên mới!",
+                Content = $"Chào mừng bạn {newUser.Name} đã gia nhập Smart Room Finder. Hãy bắt đầu tìm phòng hoặc quản lý phòng trọ của bạn nhé!",
+                Type = "System",
+                LinkUrl = "/Profile/Index",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Notifications.Add(welcomeNotification);
+             
             await _context.SaveChangesAsync();
 
             // Auto-login
@@ -216,6 +238,20 @@ namespace SmartRoomFinder.Controllers
             {
                 user.Role = role;
                 user.HasSelectedRole = true;
+                
+                // Tạo thông báo chào mừng
+                var welcomeNotification = new NotificationModel
+                {
+                    UserId = user.Id,
+                    Title = "Chào mừng thành viên mới!",
+                    Content = $"Chào mừng bạn {user.Name} đã gia nhập Smart Room Finder. Hãy bắt đầu tìm phòng hoặc quản lý phòng trọ của bạn nhé!",
+                    Type = "System",
+                    LinkUrl = "/Profile/Index",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Notifications.Add(welcomeNotification);
+                 
                 await _context.SaveChangesAsync();
 
                 // Re-sign in to update role claim

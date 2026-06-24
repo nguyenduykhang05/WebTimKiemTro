@@ -1,0 +1,311 @@
+@{
+    ViewData["Title"] = "Bảng giá tin đăng";
+}
+
+<style>
+    .pricing-table th, .pricing-table td {
+        vertical-align: middle;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        color: inherit;
+    }
+    .pricing-table th:first-child, .pricing-table td:first-child {
+        text-align: left;
+        font-weight: 500;
+        background-color: #f8f9fa;
+    }
+    .vip-noibat { background-color: #ff385c; color: white; }
+    .vip-1 { background-color: #e81cff; color: white; }
+    .vip-2 { background-color: #ff6b00; color: white; }
+    .vip-3 { background-color: #007bff; color: white; }
+    .tin-thuong { background-color: #1a56db; color: white; }
+    
+    .price-strike { text-decoration: line-through; color: #adb5bd; font-size: 0.85em; }
+    .price-discount { color: #28a745; font-size: 0.85em; margin-bottom: 2px; }
+    .price-final { font-weight: bold; font-size: 1.1em; color: #212529; }
+    
+    /* Dark Theme Support */
+    body.dark-theme .pricing-table th, 
+    body.dark-theme .pricing-table td {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    body.dark-theme .pricing-table th:first-child, 
+    body.dark-theme .pricing-table td:first-child {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    body.dark-theme .price-final {
+        color: #f8f9fa;
+    }
+    body.dark-theme .theme-adapt-bg {
+        background-color: rgba(30, 41, 59, 0.5) !important;
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    body.dark-theme .alert-info {
+        background-color: rgba(13, 202, 240, 0.15) !important;
+        border: 1px solid rgba(13, 202, 240, 0.3) !important;
+        color: #e0f2fe !important;
+    }
+    body.dark-theme .alert-info .text-dark {
+        color: #ffffff !important;
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Bảng giá tin đăng</h1>
+        <p class="text-muted">Áp dụng từ 11/06/2026</p>
+    </div>
+
+    @{
+        var currentPackage = ViewBag.CurrentPackage != null ? (SmartRoomFinder.Models.RoomPackage)ViewBag.CurrentPackage : SmartRoomFinder.Models.RoomPackage.Default;
+        var expiresAt = ViewBag.PackageExpiresAt as DateTime?;
+    }
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        bool isActive = expiresAt.HasValue && expiresAt.Value > DateTime.UtcNow;
+
+        <div class="alert alert-info shadow-sm border-0 rounded-3 mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-crown fs-4 me-3 text-warning"></i>
+                <div>
+                    <h5 class="mb-1">Gói dịch vụ hiện tại của tài khoản:</h5>
+                    <strong class="text-dark">@currentPackage.ToString()</strong>
+                    @if (isActive)
+                    {
+                        <span class="badge bg-success ms-2">Đang hoạt động (Đến @expiresAt.Value.ToString("dd/MM/yyyy HH:mm"))</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary ms-2">Chưa đăng ký hoặc Đã hết hạn</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive bg-white theme-adapt-bg shadow-sm rounded-3">
+        <table class="table pricing-table mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">
+                        <div class="d-flex align-items-center mb-2 mt-2">
+                            <span class="me-2">Giá bao gồm 8% VAT</span>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" checked disabled>
+                            </div>
+                        </div>
+                    </th>
+                    <th class="vip-noibat">
+                        <div class="fs-5 fw-bold mb-1">Tin VIP Nổi Bật</div>
+                        <div class="text-warning">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </th>
+                    <th class="vip-1">
+                        <div class="fs-5 fw-bold mb-1">Tin VIP 1</div>
+                        <div class="text-warning">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </th>
+                    <th class="vip-2">
+                        <div class="fs-5 fw-bold mb-1">Tin VIP 2</div>
+                        <div class="text-warning">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </th>
+                    <th class="vip-3">
+                        <div class="fs-5 fw-bold mb-1">Tin VIP 3</div>
+                        <div class="text-warning">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </th>
+                    <th class="tin-thuong">
+                        <div class="fs-5 fw-bold mb-1">Tin thường</div>
+                        <div style="height: 24px;"></div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Giá 5 ngày</td>
+                    <td><div class="price-final">351.000đ</div></td>
+                    <td>
+                        @if (ViewBag.IsFirstTimeBuyer == true)
+                        {
+                            <div class="price-strike">210.600đ</div>
+                            <div class="price-discount">Mua lần đầu</div>
+                            <div class="price-final">1.000đ</div>
+                        }
+                        else
+                        {
+                            <div class="price-final">210.600đ</div>
+                        }
+                    </td>
+                    <td><div class="price-final">140.400đ</div></td>
+                    <td><div class="price-final">86.400đ</div></td>
+                    <td><div class="price-final text-success">Miễn phí</div></td>
+                </tr>
+                <tr>
+                    <td>Giá 10 ngày</td>
+                    <td><div class="price-final">702.000đ</div></td>
+                    <td><div class="price-final">421.200đ</div></td>
+                    <td><div class="price-final">280.800đ</div></td>
+                    <td><div class="price-final">172.800đ</div></td>
+                    <td><div class="price-final text-success">Miễn phí</div></td>
+                </tr>
+                <tr>
+                    <td>Giá 15 ngày</td>
+                    <td><div class="price-final">1.053.000đ</div></td>
+                    <td><div class="price-final">631.800đ</div></td>
+                    <td><div class="price-final">421.200đ</div></td>
+                    <td><div class="price-final">259.200đ</div></td>
+                    <td><div class="price-final text-success">Miễn phí</div></td>
+                </tr>
+                <tr>
+                    <td>Giá 30 ngày</td>
+                    <td>
+                        <div class="price-strike">2.106.000đ</div>
+                        <div class="price-discount">Giảm 20%</div>
+                        <div class="price-final">1.684.800đ</div>
+                    </td>
+                    <td>
+                        <div class="price-strike">1.263.600đ</div>
+                        <div class="price-discount">Giảm 20%</div>
+                        <div class="price-final">1.010.880đ</div>
+                    </td>
+                    <td>
+                        <div class="price-strike">842.400đ</div>
+                        <div class="price-discount">Giảm 20%</div>
+                        <div class="price-final">673.920đ</div>
+                    </td>
+                    <td>
+                        <div class="price-strike">518.400đ</div>
+                        <div class="price-discount">Giảm 20%</div>
+                        <div class="price-final">414.720đ</div>
+                    </td>
+                    <td>
+                        <div class="price-final text-success">Miễn phí</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Giá đẩy tin</td>
+                    <td><div class="price-final">5.400đ</div></td>
+                    <td><div class="price-final">3.240đ</div></td>
+                    <td><div class="price-final">2.160đ</div></td>
+                    <td><div class="price-final">2.160đ</div></td>
+                    <td><div class="price-final text-success">Miễn phí</div></td>
+                </tr>
+                <tr>
+                    <td>Màu sắc tiêu đề</td>
+                    <td class="text-danger fw-bold">MÀU ĐỎ, IN HOA</td>
+                    <td class="fw-bold" style="color: #e81cff;">MÀU HỒNG, IN HOA</td>
+                    <td class="fw-bold" style="color: #ff6b00;">MÀU CAM, IN HOA</td>
+                    <td class="text-primary fw-bold">MÀU XANH, IN HOA</td>
+                    <td class="text-primary fw-bold">Màu mặc định, viết thường</td>
+                </tr>
+                <tr>
+                    <td>Tự động duyệt (*)</td>
+                    <td><i class="fa-solid fa-circle-check text-success fs-5"></i></td>
+                    <td><i class="fa-solid fa-circle-check text-success fs-5"></i></td>
+                    <td><i class="fa-solid fa-circle-check text-success fs-5"></i></td>
+                    <td><i class="fa-solid fa-circle-check text-success fs-5"></i></td>
+                    <td><i class="fa-solid fa-circle-check text-light fs-5" style="color: #dee2e6!important;"></i></td>
+                </tr>
+                <tr>
+                    <td>Thao tác</td>
+
+                    <td>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            bool canBuy = currentPackage < SmartRoomFinder.Models.RoomPackage.VipNoiBat || expiresAt == null || expiresAt < DateTime.UtcNow;
+                            <form action="/ServicePricing/Checkout" method="post">
+                                <input type="hidden" name="package" value="VipNoiBat" />
+                                <select name="days" class="form-select mb-2 form-select-sm border-danger" @(canBuy ? "" : "disabled")>
+                                    <option value="5">5 ngày - 351.000đ</option>
+                                    <option value="10">10 ngày - 702.000đ</option>
+                                    <option value="15">15 ngày - 1.053.000đ</option>
+                                    <option value="30">30 ngày - 1.684.800đ</option>
+                                </select>
+                                <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold" @(canBuy ? "" : "disabled")>Mua ngay</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="/Auth/Login" class="btn btn-danger w-100 rounded-pill fw-bold">Đăng nhập</a>
+                        }
+                    </td>
+                    <td>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            bool canBuy = currentPackage < SmartRoomFinder.Models.RoomPackage.Vip1 || expiresAt == null || expiresAt < DateTime.UtcNow;
+                            <form action="/ServicePricing/Checkout" method="post">
+                                <input type="hidden" name="package" value="Vip1" />
+                                <select name="days" class="form-select mb-2 form-select-sm" style="border-color: #e81cff;" @(canBuy ? "" : "disabled")>
+                                    <option value="5">5 ngày - @(ViewBag.IsFirstTimeBuyer == true ? "1.000đ" : "210.600đ")</option>
+                                    <option value="10">10 ngày - 421.200đ</option>
+                                    <option value="15">15 ngày - 631.800đ</option>
+                                    <option value="30">30 ngày - 1.010.880đ</option>
+                                </select>
+                                <button type="submit" class="btn text-white w-100 rounded-pill fw-bold" style="background-color: #e81cff;" @(canBuy ? "" : "disabled")>Mua ngay</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="/Auth/Login" class="btn text-white w-100 rounded-pill fw-bold" style="background-color: #e81cff;">Đăng nhập</a>
+                        }
+                    </td>
+                    <td>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            bool canBuy = currentPackage < SmartRoomFinder.Models.RoomPackage.Vip2 || expiresAt == null || expiresAt < DateTime.UtcNow;
+                            <form action="/ServicePricing/Checkout" method="post">
+                                <input type="hidden" name="package" value="Vip2" />
+                                <select name="days" class="form-select mb-2 form-select-sm" style="border-color: #ff6b00;" @(canBuy ? "" : "disabled")>
+                                    <option value="5">5 ngày - 140.400đ</option>
+                                    <option value="10">10 ngày - 280.800đ</option>
+                                    <option value="15">15 ngày - 421.200đ</option>
+                                    <option value="30">30 ngày - 673.920đ</option>
+                                </select>
+                                <button type="submit" class="btn text-white w-100 rounded-pill fw-bold" style="background-color: #ff6b00;" @(canBuy ? "" : "disabled")>Mua ngay</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="/Auth/Login" class="btn text-white w-100 rounded-pill fw-bold" style="background-color: #ff6b00;">Đăng nhập</a>
+                        }
+                    </td>
+                    <td>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            bool canBuy = currentPackage < SmartRoomFinder.Models.RoomPackage.Vip3 || expiresAt == null || expiresAt < DateTime.UtcNow;
+                            <form action="/ServicePricing/Checkout" method="post">
+                                <input type="hidden" name="package" value="Vip3" />
+                                <select name="days" class="form-select mb-2 form-select-sm border-primary" @(canBuy ? "" : "disabled")>
+                                    <option value="5">5 ngày - 86.400đ</option>
+                                    <option value="10">10 ngày - 172.800đ</option>
+                                    <option value="15">15 ngày - 259.200đ</option>
+                                    <option value="30">30 ngày - 414.720đ</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold" @(canBuy ? "" : "disabled")>Mua ngay</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="/Auth/Login" class="btn btn-primary w-100 rounded-pill fw-bold">Đăng nhập</a>
+                        }
+                    </td>
+                    <td class="align-middle">
+                        <div class="text-success fw-bold text-center">
+                            <i class="fa-solid fa-check-circle me-1"></i>Mặc định (Miễn phí)
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-3 small text-muted">
+        (*) Các tin VIP sẽ được hiển thị ngay sau khi khách hàng đăng tin mà không cần chờ kiểm duyệt. Tin đăng sẽ được kiểm duyệt nội dung sau.
+    </div>
+</div>

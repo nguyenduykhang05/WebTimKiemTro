@@ -27,64 +27,52 @@
             <h3 class="fw-bold mb-1"><i class="fa-solid fa-fire text-danger me-2"></i>Cẩm nang HOT</h3>
             <p class="text-secondary small mb-0">Những bài viết được đọc nhiều nhất tuần qua.</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 active">Tất cả</button>
-            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">Tân sinh viên</button>
-            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">Review khu vực</button>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">Tất cả</button>
+            <button class="btn btn-light rounded-pill px-4 py-2 fw-bold border shadow-sm text-secondary hover-primary transition-all">Bất động sản</button>
+            <button class="btn btn-light rounded-pill px-4 py-2 fw-bold border shadow-sm text-secondary hover-primary transition-all">Thị trường</button>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- Article 1 -->
-        <div class="col-md-4">
-            <div class="card glass-panel border border-secondary border-opacity-10 h-100 overflow-hidden" style="background: rgba(255,255,255,0.02);">
-                <div style="height: 200px; overflow: hidden; position: relative;">
-                    <span class="position-absolute top-0 end-0 m-3 badge bg-danger z-2"><i class="fa-solid fa-heart me-1"></i> 1.2k</span>
-                    <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80" class="w-100 h-100 object-fit-cover hover-zoom" style="transition: transform 0.5s;">
+        @if (ViewBag.Articles != null && ((IEnumerable<dynamic>)ViewBag.Articles).Any())
+        {
+            foreach (var article in (IEnumerable<dynamic>)ViewBag.Articles)
+            {
+                <div class="col-md-4">
+                    <div class="card glass-panel border border-secondary border-opacity-10 h-100 overflow-hidden shadow-sm" style="border-radius: 1.2rem;">
+                        <div style="height: 220px; overflow: hidden; position: relative;">
+                            @{
+                                var imgUrl = string.IsNullOrEmpty(article.ThumbnailUrl) ? "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80" : article.ThumbnailUrl;
+                            }
+                            <img src="@imgUrl" class="w-100 h-100 object-fit-cover hover-zoom" style="transition: transform 0.5s;" referrerpolicy="no-referrer">
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column bg-white">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold mb-3" style="width: fit-content;">Bất động sản</span>
+                            <h5 class="fw-bold mb-3 text-dark" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">@article.Title</h5>
+                            <p class="text-secondary small mb-4" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">@article.Description</p>
+                            <a href="@article.Link" target="_blank" rel="noopener noreferrer" class="mt-auto fw-bold text-decoration-none btn btn-light rounded-pill py-2 w-100 border text-primary shadow-sm hover-primary">Đọc bài viết <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i></a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body p-4 d-flex flex-column">
-                    <span class="text-primary small fw-bold mb-2">Review Khu Vực</span>
-                    <h5 class="fw-bold mb-2">Đánh giá ưu nhược điểm khi thuê phòng Làng Đại Học Thủ Đức</h5>
-                    <p class="text-secondary small mb-4">Khu vực Làng Đại Học luôn là điểm nóng. Nhưng liệu có thực sự rẻ và an toàn như lời đồn?</p>
-                    <a asp-controller="Home" asp-action="Index" class="mt-auto fw-bold text-decoration-none text-primary">Đọc tiếp <i class="fa-solid fa-arrow-right ms-1"></i></a>
-                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="fa-regular fa-newspaper fs-1 text-secondary opacity-50 mb-3"></i>
+                <h5 class="text-secondary">Đang tải dữ liệu bài viết mới nhất...</h5>
+                <p class="text-muted">Vui lòng quay lại sau.</p>
             </div>
-        </div>
-
-        <!-- Article 2 -->
-        <div class="col-md-4">
-            <div class="card glass-panel border border-secondary border-opacity-10 h-100 overflow-hidden" style="background: rgba(255,255,255,0.02);">
-                <div style="height: 200px; overflow: hidden; position: relative;">
-                    <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=600&q=80" class="w-100 h-100 object-fit-cover hover-zoom" style="transition: transform 0.5s;">
-                </div>
-                <div class="card-body p-4 d-flex flex-column">
-                    <span class="text-success small fw-bold mb-2">Tips Tân Sinh Viên</span>
-                    <h5 class="fw-bold mb-2">5 Bước nhận diện cò mồi lừa đảo khi đi tìm phòng trọ</h5>
-                    <p class="text-secondary small mb-4">Cảnh giác với những thủ đoạn tinh vi của cò mồi, giúp bạn không bị mất tiền oan khi đặt cọc.</p>
-                    <a asp-controller="Home" asp-action="Index" class="mt-auto fw-bold text-decoration-none text-success">Đọc tiếp <i class="fa-solid fa-arrow-right ms-1"></i></a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Article 3 -->
-        <div class="col-md-4">
-            <div class="card glass-panel border border-secondary border-opacity-10 h-100 overflow-hidden" style="background: rgba(255,255,255,0.02);">
-                <div style="height: 200px; overflow: hidden; position: relative;">
-                    <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80" class="w-100 h-100 object-fit-cover hover-zoom" style="transition: transform 0.5s;">
-                </div>
-                <div class="card-body p-4 d-flex flex-column">
-                    <span class="text-warning small fw-bold mb-2">Luật & Hợp đồng</span>
-                    <h5 class="fw-bold mb-2">Những điều khoản cần lưu ý trước khi đặt bút ký hợp đồng</h5>
-                    <p class="text-secondary small mb-4">Cách đọc hiểu hợp đồng thuê phòng, tiền cọc, và các khoản phí ẩn mà chủ nhà thường không nói.</p>
-                    <a asp-controller="Home" asp-action="Index" class="mt-auto fw-bold text-decoration-none text-warning">Đọc tiếp <i class="fa-solid fa-arrow-right ms-1"></i></a>
-                </div>
-            </div>
-        </div>
+        }
     </div>
     
-    <div class="text-center mt-5">
-        <button class="btn btn-premium-secondary px-5 py-2"><i class="fa-solid fa-spinner me-2"></i> Tải thêm bài viết</button>
-    </div>
+    @if (ViewBag.Articles != null && ((IEnumerable<dynamic>)ViewBag.Articles).Any())
+    {
+        <div class="text-center mt-5 mb-5">
+            <button class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-lg" style="transition: transform 0.2s;"><i class="fa-solid fa-rotate-right me-2"></i> Xem thêm bài viết</button>
+        </div>
+    }
 </div>
 
 <style>

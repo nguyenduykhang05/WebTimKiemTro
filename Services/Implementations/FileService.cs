@@ -39,6 +39,10 @@ namespace SmartRoomFinder.Services.Implementations
             return $"/uploads/{folderName}/{uniqueFileName}";
         }
 
+        // Alias for SaveImageAsync — used by KYC upload
+        public Task<string> UploadImageAsync(IFormFile file, string folderName = "rooms")
+            => SaveImageAsync(file, folderName);
+
         public async Task<List<string>> SaveImagesAsync(IEnumerable<IFormFile> files, string folderName = "rooms")
         {
             var imageUrls = new List<string>();

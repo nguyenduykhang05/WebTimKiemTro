@@ -75,49 +75,49 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center gap-1 gap-lg-3">
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
                                 Trang chủ
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Tìm phòng</a>
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["action"]?.ToString() == "Map" ? "active" : "")" asp-controller="Home" asp-action="Map">Bản đồ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Map" ? "active" : "")" asp-controller="Home" asp-action="Map">Bản đồ</a>
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["controller"]?.ToString() == "ServicePricing" ? "active" : "")" asp-controller="ServicePricing" asp-action="Index">Bảng giá dịch vụ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Blog" ? "active" : "")" asp-controller="Home" asp-action="Blog">Blog</a>
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["action"]?.ToString() == "Blog" ? "active" : "")" asp-controller="Home" asp-action="Blog">Blog</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Contact" ? "active" : "")" asp-controller="Home" asp-action="Contact">Liên hệ</a>
+                            <a class="nav-link text-nowrap @(ViewContext.RouteData.Values["action"]?.ToString() == "Contact" ? "active" : "")" asp-controller="Home" asp-action="Contact">Liên hệ</a>
                         </li>
 
                         @if (User.IsInRole("Landlord"))
                         {
-                            <li class="nav-item ms-lg-3">
-                                <a class="nav-link text-warning fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Room" asp-action="Dashboard">
+                            <li class="nav-item ms-lg-2">
+                                <a class="nav-link text-nowrap text-warning fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Room" asp-action="Dashboard">
                                     <i class="fa-solid fa-chart-pie me-1"></i> Quản lý
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-warning btn-sm ms-lg-2 mt-lg-1 mb-2 mb-lg-0 rounded-pill px-3 text-white fw-bold shadow-sm" style="background-color: #f7701d; border-color: #f7701d;" asp-controller="Room" asp-action="Create">
+                                <a class="btn btn-warning btn-sm text-nowrap ms-lg-1 mt-lg-0 mb-2 mb-lg-0 rounded-pill px-3 text-white fw-bold shadow-sm d-flex align-items-center" style="background-color: #f7701d; border-color: #f7701d; height: 38px;" asp-controller="Room" asp-action="Create">
                                     <i class="fa-solid fa-plus me-1"></i> Đăng tin
                                 </a>
                             </li>
                         }
                         else if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item ms-lg-3">
-                                <a class="nav-link text-danger fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Admin" asp-action="Dashboard">
+                            <li class="nav-item ms-lg-2">
+                                <a class="nav-link text-nowrap text-danger fw-bold @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Admin" asp-action="Dashboard">
                                     <i class="fa-solid fa-shield-halved me-1"></i> Quản Trị
                                 </a>
                             </li>
                         }
                     </ul>
                     
-                    <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-3 ms-lg-4">
                         <!-- Theme Toggle Icon -->
                         <a href="javascript:void(0)" id="themeToggle" class="text-secondary opacity-75 hover-opacity-100 fs-5"><i id="themeIcon" class="fa-regular fa-moon"></i></a>
 
@@ -129,7 +129,7 @@
                                     <i class="fa-regular fa-bell"></i>
                                     <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem; margin-left: -5px;">0</span>
                                 </a>
-                                <div class="dropdown-menu dropdown-menu-end mt-2 border-0 shadow-lg p-0" style="width: 320px; border-radius: 16px; background: #0F172A; overflow: hidden;" aria-labelledby="bellIcon">
+                                <div class="dropdown-menu dropdown-menu-end mt-2 notif-dropdown" aria-labelledby="bellIcon">
                                     <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
                                         <h6 class="m-0 text-white fw-bold">Thông báo</h6>
                                         <a href="javascript:void(0)" id="btnReadAll" class="text-info small text-decoration-none">Đánh dấu đã đọc</a>
@@ -161,6 +161,16 @@
                                             <i class="fa-solid fa-money-bill-wave me-2 text-success"></i> Quản lý cọc
                                         </a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item text-white rounded-3 py-2" asp-controller="Profile" asp-action="KycStatus">
+                                            <i class="fa-solid fa-id-card me-2 text-info"></i> Xác minh danh tính
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-white rounded-3 py-2" asp-controller="Profile" asp-action="PaymentSettings">
+                                            <i class="fa-solid fa-gears me-2 text-warning"></i> Cài đặt thanh toán
+                                        </a>
+                                    </li>
                                     <li><hr class="dropdown-divider border-secondary"></li>
                                     <li>
                                         <a class="dropdown-item text-danger rounded-3 py-2" asp-controller="Auth" asp-action="Logout">
@@ -180,6 +190,27 @@
             </div>
         </nav>
     </header>
+
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Landlord"))
+    {
+        var layoutUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(layoutUserId))
+        {
+            var layoutDbContext = Context.RequestServices.GetRequiredService<SmartRoomFinder.Data.AppDbContext>();
+            var layoutUser = layoutDbContext.Users.FirstOrDefault(u => u.Id == layoutUserId);
+            var isKycVerified = layoutUser?.IsKycVerified ?? false;
+            if (!isKycVerified)
+            {
+                <div class="alert alert-warning alert-dismissible fade show rounded-0 mb-0 border-0 shadow-sm" role="alert" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); color: #92400e; font-size: 0.95rem; border-bottom: 1px solid #fde68a !important;">
+                    <div class="container d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation fs-5 text-warning"></i>
+                        <span>Tài khoản của bạn <strong>chưa xác minh danh tính (KYC)</strong>. Vui lòng hoàn tất KYC để đăng tin mới và quản lý phòng.</span>
+                        <a href="/Profile/KycStatus" class="btn btn-warning btn-sm ms-auto rounded-pill px-3 py-1 text-dark fw-bold border-0 shadow-sm" style="background: #f59e0b;">Xác minh ngay</a>
+                    </div>
+                </div>
+            }
+        }
+    }
 
     <main role="main">
         @RenderBody()
@@ -257,13 +288,26 @@
                 }
                 notifList.innerHTML = '';
                 items.forEach(item => {
-                    var bg = item.isRead ? '' : 'background: rgba(13, 110, 253, 0.1);';
+                    var bg = item.isRead ? '' : 'background: rgba(13, 110, 253, 0.08);';
                     var fw = item.isRead ? 'text-secondary' : 'text-white fw-bold';
+                    
+                    var iconHtml = '';
+                    if (item.type === 'KYC') {
+                        iconHtml = '<div class="notif-icon-wrapper notif-icon-kyc"><i class="fa-solid fa-id-card"></i></div>';
+                    } else if (item.type === 'Payment') {
+                        iconHtml = '<div class="notif-icon-wrapper notif-icon-payment"><i class="fa-solid fa-money-bill-wave"></i></div>';
+                    } else {
+                        iconHtml = '<div class="notif-icon-wrapper notif-icon-system"><i class="fa-solid fa-circle-info"></i></div>';
+                    }
+
                     var html = `
-                        <a href="${item.linkUrl || '#'}" class="text-decoration-none d-block p-3 border-bottom border-secondary border-opacity-10 notif-item" style="transition: all 0.2s; ${bg}" data-id="${item.id}" onclick="markRead('${item.id}', this)">
-                            <h6 class="mb-1 ${fw} fs-6">${item.title}</h6>
-                            <p class="mb-1 text-secondary small text-truncate" style="font-size: 0.8rem; white-space: normal;">${item.content}</p>
-                            <small class="text-muted" style="font-size: 0.7rem;">${item.createdAtStr}</small>
+                        <a href="${item.linkUrl || '#'}" class="text-decoration-none d-flex p-3 notif-item" style="${bg}" data-id="${item.id}" onclick="markRead('${item.id}', this)">
+                            ${iconHtml}
+                            <div class="notif-content-wrapper">
+                                <h6 class="mb-1 ${fw} notif-title">${item.title}</h6>
+                                <p class="mb-1 notif-desc">${item.content}</p>
+                                <small class="notif-time">${item.createdAtStr}</small>
+                            </div>
                         </a>
                     `;
                     notifList.insertAdjacentHTML('beforeend', html);

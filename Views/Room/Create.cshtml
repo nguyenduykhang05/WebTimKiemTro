@@ -330,8 +330,25 @@
                 document.getElementById('roomLongitude').value = lng;
                 
                 var statusBtn = document.getElementById('map-status');
-                statusBtn.innerHTML = "Đã chọn vị trí";
+                statusBtn.innerHTML = "Đang tìm địa chỉ...";
                 statusBtn.parentElement.classList.replace('text-primary', 'text-success');
+
+                // Gọi API Nominatim để lấy địa chỉ chi tiết (Reverse Geocoding)
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.display_name) {
+                            var address = data.display_name;
+                            // Loại bỏ quốc gia ở cuối để địa chỉ gọn hơn
+                            address = address.replace(/, Việt Nam|, Vietnam/gi, '');
+                            document.getElementById('Address').value = address;
+                            statusBtn.innerHTML = "Đã chọn vị trí";
+                        }
+                    })
+                    .catch(err => {
+                        console.log('Reverse geocoding error:', err);
+                        statusBtn.innerHTML = "Đã chọn vị trí";
+                    });
 
                 if (mapMarker) {
                     mapMarker.setLatLng(e.latlng);

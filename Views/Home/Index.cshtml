@@ -105,6 +105,7 @@
     </div>
 </div>
 
+
 <!-- 3. Features Row Banner -->
 <div class="container mb-5">
     <div class="row g-4">
@@ -166,8 +167,39 @@
                 {
                     @foreach (var room in Model)
                     {
+                        string cardStyle = "";
+                        string titleStyle = "";
+                        string titleClass = "fw-bold mb-1 text-truncate";
+                        int starCount = 0;
+                        
+                        switch (room.Package)
+                        {
+                            case SmartRoomFinder.Models.RoomPackage.VipNoiBat:
+                                cardStyle = "border: 2px solid #ff385c; box-shadow: 0 4px 15px rgba(255, 56, 92, 0.2); background-color: #fff0f2;";
+                                titleStyle = "color: #ff385c; text-transform: uppercase;";
+                                starCount = 5;
+                                break;
+                            case SmartRoomFinder.Models.RoomPackage.Vip1:
+                                cardStyle = "border: 2px solid #e81cff; box-shadow: 0 4px 15px rgba(232, 28, 255, 0.2); background-color: #fdf0ff;";
+                                titleStyle = "color: #e81cff; text-transform: uppercase;";
+                                starCount = 4;
+                                break;
+                            case SmartRoomFinder.Models.RoomPackage.Vip2:
+                                cardStyle = "border: 2px solid #ff6b00; box-shadow: 0 4px 15px rgba(255, 107, 0, 0.2); background-color: #fff5eb;";
+                                titleStyle = "color: #ff6b00; text-transform: uppercase;";
+                                starCount = 3;
+                                break;
+                            case SmartRoomFinder.Models.RoomPackage.Vip3:
+                                cardStyle = "border: 2px solid #007bff; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2); background-color: #f0f7ff;";
+                                titleStyle = "color: #007bff; text-transform: uppercase;";
+                                starCount = 2;
+                                break;
+                            default:
+                                break;
+                        }
+
                         <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="room-card-premium h-100 d-flex flex-column">
+                            <div class="room-card-premium h-100 d-flex flex-column" style="@cardStyle">
                                 <div class="room-card-img-wrapper">
                                     <span class="room-badge-premium badge-verified-light">
                                         <i class="fa-solid fa-circle-check me-1"></i> VERIFIED OWNER
@@ -184,7 +216,16 @@
                                     <img src="@room.MainImageUrl" class="room-card-img" alt="Room" onerror="this.src='https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80'">
                                 </div>
                                 <div class="p-4 d-flex flex-column flex-grow-1">
-                                    <h5 class="fw-bold mb-1 text-truncate">@room.Title</h5>
+                                    <h5 class="@titleClass" style="@titleStyle" title="@room.Title">@room.Title</h5>
+                                    @if (starCount > 0)
+                                    {
+                                        <div class="mb-1 text-warning" style="font-size: 0.8rem;">
+                                            @for (int i = 0; i < starCount; i++)
+                                            {
+                                                <i class="fa-solid fa-star"></i>
+                                            }
+                                        </div>
+                                    }
                                     <p class="small text-secondary mb-3"><i class="fa-solid fa-location-dot text-danger me-1"></i> @room.Location</p>
                                     
                                     <div class="row g-2 mb-3 text-secondary small">

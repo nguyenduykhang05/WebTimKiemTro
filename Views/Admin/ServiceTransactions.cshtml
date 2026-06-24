@@ -1,0 +1,162 @@
+@model IEnumerable<SmartRoomFinder.Models.ServiceTransactionModel>
+@using SmartRoomFinder.Models
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Giao dịch VIP";
+    ViewData["Subtitle"] = "Theo dõi danh sách mua gói dịch vụ VIP của người dùng.";
+
+    var totalTx = Model.Count();
+    var revenue = Model.Where(t => t.Status == "Paid").Sum(t => t.Amount);
+    var pendingTx = Model.Count(t => t.Status == "Pending");
+    var paidTx = Model.Count(t => t.Status == "Paid");
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Quick Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-primary me-3">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Tổng giao dịch</p>
+                <h4 class="fw-bold mb-0 text-dark">@totalTx</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-warning me-3">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Chờ xử lý</p>
+                <h4 class="fw-bold mb-0 text-dark">@pendingTx</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-success me-3">
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Thành công</p>
+                <h4 class="fw-bold mb-0 text-dark">@paidTx</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card border-0 p-3 h-100 d-flex align-items-center">
+            <div class="admin-icon-box bg-light text-danger me-3">
+                <i class="fa-solid fa-sack-dollar"></i>
+            </div>
+            <div>
+                <p class="text-muted small mb-0">Tổng doanh thu</p>
+                <h4 class="fw-bold mb-0 text-dark">@revenue.ToString("#,##0") đ</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card border-0 mb-4">
+    <div class="admin-card-header d-flex justify-content-between align-items-center p-3 border-bottom">
+        <h6 class="mb-0 fw-bold">Danh sách Giao Dịch</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table mb-0 align-middle">
+            <thead class="bg-light text-muted small text-uppercase">
+                <tr>
+                    <th class="ps-4">Mã Giao Dịch</th>
+                    <th>Người Mua</th>
+                    <th>Gói VIP</th>
+                    <th>Thời hạn</th>
+                    <th>Số Tiền</th>
+                    <th>Ngày Tạo</th>
+                    <th>Trạng Thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-folder-open fs-1 mb-3 opacity-50"></i>
+                            <p class="mb-0">Chưa có giao dịch mua VIP nào.</p>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var tx in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark">#@tx.OrderCode</span>
+                            </td>
+                            <td>
+                                @if (tx.User != null)
+                                {
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="admin-user-avatar-small" style="background: var(--admin-primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                            @tx.User.Name.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 0.85rem;">@tx.User.Name</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">@tx.User.Email</div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Người dùng đã xóa</span>
+                                }
+                            </td>
+                            <td>
+                                @if (tx.Package == RoomPackage.Vip3) {
+                                    <span class="badge bg-danger">VIP 3</span>
+                                } else if (tx.Package == RoomPackage.Vip2) {
+                                    <span class="badge bg-warning text-dark">VIP 2</span>
+                                } else {
+                                    <span class="badge bg-info text-dark">VIP 1</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="text-muted fw-medium">@tx.Days ngày</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-success">@tx.Amount.ToString("#,##0") đ</span>
+                            </td>
+                            <td>
+                                <span class="text-muted" style="font-size: 0.85rem;">@tx.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                            </td>
+                            <td>
+                                @if (tx.Status == "Pending")
+                                {
+                                    <span class="badge bg-secondary text-white rounded-pill fw-normal px-2 py-1"><i class="fa-solid fa-clock me-1"></i>Chờ thanh toán</span>
+                                }
+                                else if (tx.Status == "Paid")
+                                {
+                                    <span class="badge bg-success text-white rounded-pill fw-normal px-2 py-1"><i class="fa-solid fa-check me-1"></i>Thành công</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger text-white rounded-pill fw-normal px-2 py-1"><i class="fa-solid fa-xmark me-1"></i>Đã hủy</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

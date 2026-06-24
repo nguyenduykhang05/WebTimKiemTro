@@ -36,6 +36,9 @@ namespace SmartRoomFinder.Services.Implementations
 
         public async Task<string> CreateRoomAsync(RoomCreateViewModel model, string ownerId, string ownerName)
         {
+            var user = await _context.Users.FindAsync(ownerId);
+            bool hasActivePackage = user != null && user.PackageExpiresAt.HasValue && user.PackageExpiresAt.Value > DateTime.UtcNow;
+
             var room = new RoomModel
             {
                 Id = Guid.NewGuid().ToString(),
@@ -55,9 +58,11 @@ namespace SmartRoomFinder.Services.Implementations
                 Longitude = model.Longitude,
                 PostedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                ApprovalStatus = RoomStatus.Pending,
+                ApprovalStatus = hasActivePackage ? RoomStatus.Verified : RoomStatus.Pending,
                 IsVerified = false,
-                IsActive = true
+                IsActive = hasActivePackage,
+                Package = hasActivePackage ? user!.CurrentPackage : RoomPackage.Default,
+                ExpiresAt = hasActivePackage ? DateTime.UtcNow.AddDays(30) : null
             };
 
             // Parse amenities

@@ -1,0 +1,43 @@
+, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+180:         height: 8px;
+181:         background: radial-gradient(ellipse, rgba(139, 92, 246, 0.35) 0%, transparent 80%);
+182:         border-radius: 50%;
+183:         margin-top: 8px;
+184:         position: relative;
+185:         z-index: 1;
+186:         animation: shadow-dance 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+187:     }
+188:     
+189:     @@keyframes shadow-dance {
+190:         0%   { transform: scale(1, 1); opacity: 0.7; filter: blur(1px); }
+191:         25%  { transform: scale(0.85, 0.85); opacity: 0.5; filter: blur(2px); }
+192:         50%  { transform: scale(0.6, 0.6); opacity: 0.25; filter: blur(3px); }
+193:         75%  { transform: scale(0.85, 0.85); opacity: 0.5; filter: blur(2px); }
+194:         100% { transform: scale(1, 1); opacity: 0.7; filter: blur(1px); }
+195:     }
+196:     
+197:     /* Hover: robot reacts physically */
+198:     .ai-bot-wrapper:hover .ai-bot-body {
+199:         animation-play-state: paused;
+200:         transform: scale(1.12) translateY(-10px) rotate(-4deg) !important;
+201:         box-shadow: 0 20px 40px rgba(139, 92, 246, 0.35) !important;
+202:         border-color: #7C3AED !important;
+203:     }
+204:     
+205:     .ai-bot-wrapper:hover .ai-bot-body img {
+206:         transform: scale(1.08);
+207:     }
+208:     
+209:     .ai-bot-wrapper:hover .ai-bot-shadow {
+210:         animation-play-state: paused;
+211:         transform: scale(0.4) !important;
+212:         opacity: 0.15 !important;
+213:         filter: blur(4px) !important;
+214:     }
+215:     
+216:     .ai-bot-wrapper:hover .ai-bot-glow-ring {
+217:         animation-play-state: paused;
+218:         transform: scale(1.4) !important;
+219:         opacity: 1 !important;
+220:     }
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

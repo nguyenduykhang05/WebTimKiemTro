@@ -137,6 +137,7 @@
                         <th>Tên</th>
                         <th>Email</th>
                         <th>Vai trò</th>
+                        <th>Gói dịch vụ</th>
                         <th>Số điện thoại</th>
                         <th>Trạng thái</th>
                         <th>Ngày tham gia</th>
@@ -154,8 +155,15 @@
                             <td class="ps-4"><input type="checkbox" class="admin-checkbox" /></td>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="admin-user-avatar" style="background: var(--admin-primary); color: white;">
-                                        @(user.Name?.Substring(0, 1).ToUpper() ?? "U")
+                                    <div class="admin-user-avatar" style="background: var(--admin-primary); color: white; overflow: hidden;">
+                                        @if (!string.IsNullOrEmpty(user.ProfileImageUrl))
+                                        {
+                                            <img src="@user.ProfileImageUrl" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='@(user.Name?.Substring(0, 1).ToUpper() ?? "U")';" />
+                                        }
+                                        else
+                                        {
+                                            @(user.Name?.Substring(0, 1).ToUpper() ?? "U")
+                                        }
                                     </div>
                                     <div class="fw-bold text-dark" style="font-size: 0.9rem;">@user.Name</div>
                                 </div>
@@ -168,6 +176,17 @@
                                     <span class="admin-badge badge-role-landlord">Chủ trọ</span>
                                 } else {
                                     <span class="admin-badge badge-role-renter">Người thuê</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip3) {
+                                    <span class="badge bg-danger">VIP 3</span>
+                                } else if (user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip2) {
+                                    <span class="badge bg-warning text-dark">VIP 2</span>
+                                } else if (user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip1) {
+                                    <span class="badge bg-info text-dark">VIP 1</span>
+                                } else {
+                                    <span class="badge bg-secondary">Mặc định</span>
                                 }
                             </td>
                             <td><span class="text-muted" style="font-size: 0.85rem;">@(string.IsNullOrEmpty(user.PhoneNumber) ? "--" : user.PhoneNumber)</span></td>
@@ -215,8 +234,15 @@
                 </div>
                 
                 <div class="admin-detail-body pt-0 text-center">
-                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center fw-bold text-white shadow-sm" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; background: var(--admin-primary);">
-                        @(user.Name?.Substring(0, 1).ToUpper() ?? "U")
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center fw-bold text-white shadow-sm" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; background: var(--admin-primary); overflow: hidden;">
+                        @if (!string.IsNullOrEmpty(user.ProfileImageUrl))
+                        {
+                            <img src="@user.ProfileImageUrl" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='@(user.Name?.Substring(0, 1).ToUpper() ?? "U")';" />
+                        }
+                        else
+                        {
+                            @(user.Name?.Substring(0, 1).ToUpper() ?? "U")
+                        }
                     </div>
                     
                     <h4 class="fw-bold mb-2">@user.Name</h4>
@@ -242,6 +268,36 @@
                         <div class="d-flex align-items-center text-muted w-100">
                             <i class="fa-solid fa-location-dot me-3 w-15px text-center"></i>
                             <span class="text-dark fw-medium">@user.Location</span>
+                        </div>
+                        <div class="d-flex align-items-center text-muted w-100 mt-2 pt-3 border-top">
+                            <i class="fa-solid fa-gem me-3 w-15px text-center text-warning"></i>
+                            <div class="d-flex flex-column">
+                                <span class="text-dark fw-bold">Gói dịch vụ: 
+                                    @if (user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip3) { <span class="text-danger">VIP 3</span> }
+                                    else if (user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip2) { <span class="text-warning">VIP 2</span> }
+                                    else if (user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip1) { <span class="text-info">VIP 1</span> }
+                                    else { <span class="text-secondary">Mặc định</span> }
+                                </span>
+                                @if (user.PackageExpiresAt.HasValue) {
+                                    <span class="text-muted" style="font-size: 0.75rem;">Hết hạn: @user.PackageExpiresAt.Value.ToString("dd/MM/yyyy")</span>
+                                }
+                            </div>
+                        </div>
+                        
+                        <!-- Update Package Form -->
+                        <div class="w-100 mt-3 pt-3 border-top">
+                            <div class="text-muted fw-bold mb-2" style="font-size: 0.8rem;">Quản lý Gói Dịch Vụ</div>
+                            <form asp-controller="Admin" asp-action="UpdateUserPackage" method="post" class="d-flex gap-2 w-100">
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <select name="package" class="form-select form-select-sm border-0 bg-white shadow-sm" style="border-radius: 6px; flex: 1;">
+                                    <option value="Default" selected="@(user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Default)">Mặc định</option>
+                                    <option value="Vip1" selected="@(user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip1)">VIP 1</option>
+                                    <option value="Vip2" selected="@(user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip2)">VIP 2</option>
+                                    <option value="Vip3" selected="@(user.CurrentPackage == SmartRoomFinder.Models.RoomPackage.Vip3)">VIP 3</option>
+                                </select>
+                                <input type="number" name="days" class="form-control form-control-sm border-0 bg-white shadow-sm" placeholder="Ngày" style="width: 70px; border-radius: 6px;" min="1" value="30" />
+                                <button type="submit" class="btn btn-sm btn-primary text-nowrap shadow-sm" style="border-radius: 6px;"><i class="fa-solid fa-floppy-disk"></i></button>
+                            </form>
                         </div>
                     </div>
                     

@@ -537,3 +537,80 @@ h1, h2, h3, h4, h5, h6, .poppins-title {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     outline: none;
 }
+
+/* Custom Premium Notification Dropdown */
+.notif-dropdown {
+    width: 360px !important;
+    background: #0B0F19 !important; /* matching dark nav bg */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+    overflow: hidden;
+    padding: 0 !important;
+}
+
+.notif-header {
+    background: #0F172A;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.notif-item {
+    transition: all 0.2s ease-in-out;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    display: flex !important;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.notif-item:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.notif-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+}
+
+.notif-icon-kyc {
+    background: rgba(14, 165, 233, 0.15);
+    color: #0ea5e9;
+}
+
+.notif-icon-payment {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.notif-icon-system {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.notif-content-wrapper {
+    flex-grow: 1;
+}
+
+.notif-title {
+    font-size: 0.875rem !important;
+    margin-bottom: 3px !important;
+}
+
+.notif-desc {
+    font-size: 0.775rem !important;
+    line-height: 1.35 !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin-bottom: 4px !important;
+    white-space: normal !important;
+}
+
+.notif-time {
+    font-size: 0.7rem !important;
+    color: rgba(255, 255, 255, 0.35) !important;
+}

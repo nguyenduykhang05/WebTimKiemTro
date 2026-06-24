@@ -1,0 +1,220 @@
+@model SmartRoomFinder.Models.UserModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Cài Đặt Liên Kết Thanh Toán";
+    var activeMethod = Model.HasVietQrConfigured ? "VietQR" : "PayOS";
+}
+
+<div class="container py-5" style="max-width: 750px;">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header py-4 px-4 text-center" style="background: linear-gradient(135deg, #0F172A, #2563EB);">
+            <h4 class="text-white fw-bold mb-1"><i class="fa-solid fa-credit-card me-2"></i> Thiết Lập Liên Kết Thanh Toán</h4>
+            <p class="text-white-50 mb-0 small">Chọn hình thức nhận tiền đặt cọc trực tiếp từ người thuê phòng.</p>
+        </div>
+        
+        <!-- Tab navigation -->
+        <div class="d-flex border-bottom bg-light">
+            <button type="button" class="btn flex-fill py-3 border-0 rounded-0 fw-bold select-method-tab @(activeMethod == "PayOS" ? "btn-primary active" : "text-secondary")" 
+                    id="tabPayOS" onclick="switchMethod('PayOS')">
+                <i class="fa-solid fa-bolt me-2"></i>Cổng tự động PayOS
+            </button>
+            <button type="button" class="btn flex-fill py-3 border-0 rounded-0 fw-bold select-method-tab @(activeMethod == "VietQR" ? "btn-primary active" : "text-secondary")" 
+                    id="tabVietQR" onclick="switchMethod('VietQR')">
+                <i class="fa-solid fa-qrcode me-2"></i>Chuyển khoản VietQR
+            </button>
+        </div>
+
+        <div class="card-body p-4">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success rounded-3 border-0 mb-4 shadow-sm">
+                    <i class="fa-solid fa-circle-check me-2"></i>@TempData["Success"]
+                </div>
+            }
+
+            <form asp-action="PaymentSettings" method="post" id="paymentForm">
+                @Html.AntiForgeryToken()
+                
+                <!-- Hidden input to store chosen method -->
+                <input type="hidden" name="method" id="selectedMethod" value="@activeMethod" />
+
+                <!-- SECTION 1: PAYOS -->
+                <div id="sectionPayOS" style="display: @(activeMethod == "PayOS" ? "block" : "none");">
+                    <div class="alert alert-info rounded-3 border-0 mb-4">
+                        <h6 class="fw-bold mb-2"><i class="fa-solid fa-circle-info me-1"></i> Cách lấy API Key PayOS</h6>
+                        <ol class="mb-0 small ps-3">
+                            <li>Đăng ký & đăng nhập tại <a href="https://my.payos.vn" target="_blank" class="fw-bold text-decoration-none">my.payos.vn</a></li>
+                            <li>Vào menu <strong>Thông tin tích hợp</strong> → Sao chép 3 thông số tương ứng dán bên dưới.</li>
+                        </ol>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">Client ID <span class="text-danger">*</span></label>
+                        <input type="text" name="payOsClientId" id="payOsClientId" class="form-control rounded-3 font-monospace"
+                               value="@Model.PayOsClientId" placeholder="xxxx-xxxx-xxxx-xxxx" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">API Key <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="payOsApiKey" name="payOsApiKey" class="form-control rounded-start-3 font-monospace"
+                                   value="@Model.PayOsApiKey" placeholder="Nhập API Key của bạn" />
+                            <button class="btn btn-outline-secondary rounded-end-3" type="button" onclick="toggleVisibility('payOsApiKey')">
+                                <i class="fa-solid fa-eye" id="eye-payOsApiKey"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Checksum Key <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="payOsChecksumKey" name="payOsChecksumKey" class="form-control rounded-start-3 font-monospace"
+                                   value="@Model.PayOsChecksumKey" placeholder="Nhập Checksum Key của bạn" />
+                            <button class="btn btn-outline-secondary rounded-end-3" type="button" onclick="toggleVisibility('payOsChecksumKey')">
+                                <i class="fa-solid fa-eye" id="eye-payOsChecksumKey"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: VIETQR -->
+                <div id="sectionVietQR" style="display: @(activeMethod == "VietQR" ? "block" : "none");">
+                    <div class="alert alert-warning rounded-3 border-0 mb-4 text-warning-dark" style="background: rgba(245, 158, 11, 0.1);">
+                        <h6 class="fw-bold mb-2"><i class="fa-solid fa-circle-info me-1"></i> Liên kết Chuyển khoản VietQR</h6>
+                        <p class="mb-0 small">Hệ thống sẽ tự động sinh mã QR ngân hàng chứa số tiền cọc khi người thuê đặt cọc. Tiền cọc chuyển thẳng vào tài khoản ngân hàng của bạn không mất phí API.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">Chọn ngân hàng thụ hưởng <span class="text-danger">*</span></label>
+                        <select name="bankName" id="bankName" class="form-select rounded-3">
+                            <option value="">-- Chọn ngân hàng --</option>
+                            <option value="Vietcombank" selected="@(Model.BankName == "Vietcombank")">Vietcombank (Ngoại thương)</option>
+                            <option value="MBBank" selected="@(Model.BankName == "MBBank")">MBBank (Quân Đội)</option>
+                            <option value="Techcombank" selected="@(Model.BankName == "Techcombank")">Techcombank (Kỹ thương)</option>
+                            <option value="VietinBank" selected="@(Model.BankName == "VietinBank")">VietinBank (Công thương)</option>
+                            <option value="BIDV" selected="@(Model.BankName == "BIDV")">BIDV (Đầu tư & Phát triển)</option>
+                            <option value="ACB" selected="@(Model.BankName == "ACB")">ACB (Á Châu)</option>
+                            <option value="TPBank" selected="@(Model.BankName == "TPBank")">TPBank (Tiên Phong)</option>
+                            <option value="VPBank" selected="@(Model.BankName == "VPBank")">VPBank (Việt Nam Thịnh Vượng)</option>
+                            <option value="Sacombank" selected="@(Model.BankName == "Sacombank")">Sacombank (Sài Gòn Thương Tín)</option>
+                            <option value="Agribank" selected="@(Model.BankName == "Agribank")">Agribank (Nông nghiệp)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary">Số tài khoản ngân hàng <span class="text-danger">*</span></label>
+                        <input type="text" name="bankAccountNumber" id="bankAccountNumber" class="form-control rounded-3"
+                               value="@Model.BankAccountNumber" placeholder="Nhập số tài khoản ngân hàng nhận tiền" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Tên chủ tài khoản (Viết hoa không dấu) <span class="text-danger">*</span></label>
+                        <input type="text" name="bankAccountHolder" id="bankAccountHolder" class="form-control rounded-3 text-uppercase"
+                               value="@Model.BankAccountHolder" placeholder="Ví dụ: NGUYEN VAN A" />
+                    </div>
+                </div>
+
+                <!-- Footer Status -->
+                @if (Model.HasPayOsConfigured)
+                {
+                    <div class="alert alert-success rounded-3 border-0 small mb-4 py-2">
+                        <i class="fa-solid fa-circle-check me-1"></i> Đang hoạt động: <strong>Cổng tự động PayOS</strong>.
+                    </div>
+                }
+                else if (Model.HasVietQrConfigured)
+                {
+                    <div class="alert alert-success rounded-3 border-0 small mb-4 py-2">
+                        <i class="fa-solid fa-circle-check me-1"></i> Đang hoạt động: <strong>Chuyển khoản VietQR (@Model.BankName)</strong>.
+                    </div>
+                }
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-5 py-2 rounded-3 fw-bold shadow-sm">
+                        <i class="fa-solid fa-floppy-disk me-2"></i> Lưu cấu hình
+                    </button>
+                    <a asp-controller="Profile" asp-action="Index" class="btn btn-outline-secondary px-4 py-2 rounded-3">Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-4 small text-muted text-center">
+        <i class="fa-solid fa-lock me-1 text-success"></i>
+        Thông tin kết nối được bảo mật an toàn. Tiền cọc từ khách hàng sẽ chuyển thẳng 100% về tài khoản cá nhân của bạn.
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function switchMethod(method) {
+            document.getElementById('selectedMethod').value = method;
+            
+            const tabPayOS = document.getElementById('tabPayOS');
+            const tabVietQR = document.getElementById('tabVietQR');
+            const secPayOS = document.getElementById('sectionPayOS');
+            const secVietQR = document.getElementById('sectionVietQR');
+            
+            const clientInput = document.getElementById('payOsClientId');
+            const apiInput = document.getElementById('payOsApiKey');
+            const checksumInput = document.getElementById('payOsChecksumKey');
+            const bankInput = document.getElementById('bankName');
+            const accInput = document.getElementById('bankAccountNumber');
+            const holderInput = document.getElementById('bankAccountHolder');
+
+            if (method === 'PayOS') {
+                tabPayOS.classList.add('btn-primary', 'active');
+                tabPayOS.classList.remove('text-secondary');
+                tabVietQR.classList.remove('btn-primary', 'active');
+                tabVietQR.classList.add('text-secondary');
+                
+                secPayOS.style.display = 'block';
+                secVietQR.style.display = 'none';
+
+                // Yêu cầu bắt buộc trường PayOS
+                clientInput.setAttribute('required', 'required');
+                apiInput.setAttribute('required', 'required');
+                checksumInput.setAttribute('required', 'required');
+                
+                // Gỡ bỏ yêu cầu trường VietQR
+                bankInput.removeAttribute('required');
+                accInput.removeAttribute('required');
+                holderInput.removeAttribute('required');
+            } else {
+                tabVietQR.classList.add('btn-primary', 'active');
+                tabVietQR.classList.remove('text-secondary');
+                tabPayOS.classList.remove('btn-primary', 'active');
+                tabPayOS.classList.add('text-secondary');
+                
+                secPayOS.style.display = 'none';
+                secVietQR.style.display = 'block';
+
+                // Yêu cầu bắt buộc trường VietQR
+                bankInput.setAttribute('required', 'required');
+                accInput.setAttribute('required', 'required');
+                holderInput.setAttribute('required', 'required');
+                
+                // Gỡ bỏ yêu cầu trường PayOS
+                clientInput.removeAttribute('required');
+                apiInput.removeAttribute('required');
+                checksumInput.removeAttribute('required');
+            }
+        }
+
+        function toggleVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const eyeIcon = document.getElementById('eye-' + inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Kích hoạt trường require mặc định khi load trang
+        document.addEventListener("DOMContentLoaded", function() {
+            switchMethod('@activeMethod');
+        });
+    </script>
+}

@@ -26,6 +26,15 @@ namespace SmartRoomFinder.Models
         NorthWest
     }
 
+    public enum RoomPackage
+    {
+        Default,
+        Vip3,
+        Vip2,
+        Vip1,
+        VipNoiBat
+    }
+
     public enum RoomStatus
     {
         Pending,
@@ -128,6 +137,8 @@ namespace SmartRoomFinder.Models
         public DateTime? ExpiresAt { get; set; }
 
         public RoomStatus ApprovalStatus { get; set; } = RoomStatus.Pending;
+
+        public RoomPackage Package { get; set; } = RoomPackage.Default;
 
         public bool IsReserved { get; set; } = false;
 

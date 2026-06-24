@@ -55,38 +55,47 @@
 
         <!-- Cột bên phải: Bản đồ lớn (mockup) -->
         <div class="col-lg-7">
-            <div class="map-sticky-panel" style="height: calc(100vh - 180px); top: 0;">
-                <div class="map-header mb-3">
-                    <h6 class="fw-bold mb-3 poppins-title"><i class="fa-solid fa-earth-americas text-primary me-2"></i>Tìm kiếm theo bán kính (Radius Search)</h6>
-                    <div class="search-bar-floating shadow-sm" style="margin-top: 0; padding: 6px;">
-                        <div class="search-bar-field py-1">
-                            <label><i class="fa-solid fa-location-dot text-danger me-1"></i> Mốc vị trí trung tâm</label>
-                            <select id="landmarkSelect" class="form-select form-select-sm border-0 bg-transparent px-0 fw-bold shadow-none">
-                                <option value="">-- Chọn mốc vị trí --</option>
-                            </select>
-                        </div>
-                        <div class="search-bar-field py-1">
-                            <label><i class="fa-solid fa-compass text-primary me-1"></i> Phạm vi bán kính</label>
-                            <select id="radiusSelect" class="form-select form-select-sm border-0 bg-transparent px-0 fw-bold shadow-none">
-                                <option value="1">Trong vòng 1 km</option>
-                                <option value="3" selected>Trong vòng 3 km</option>
-                                <option value="5">Trong vòng 5 km</option>
-                                <option value="10">Trong vòng 10 km</option>
-                            </select>
-                        </div>
-                        <div class="ms-2 pe-1 d-flex gap-2 align-items-center">
-                            <button id="btnSearchRadius" class="btn btn-search-premium rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; transition: all 0.2s;" title="Tìm kiếm">
-                                <i class="fa-solid fa-magnifying-glass fs-5"></i>
-                            </button>
-                            <button id="btnResetMap" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; transition: all 0.2s;" title="Khôi phục mặc định">
-                                <i class="fa-solid fa-rotate-right text-secondary fs-5"></i>
-                            </button>
+            <div class="map-sticky-panel d-flex flex-column" style="height: calc(100vh - 110px); top: 75px; position: sticky;">
+                <div class="map-header mb-2 border border-secondary border-opacity-10 shadow-sm bg-white" style="border-radius: 50px; padding: 4px 6px 4px 20px;">
+                    <div class="d-flex flex-row flex-wrap align-items-center justify-content-between gap-2">
+                        <h6 class="fw-bold mb-0 poppins-title d-flex align-items-center text-nowrap" style="font-size: 0.95rem;"><i class="fa-solid fa-earth-americas text-primary me-2 fs-6"></i>Tìm kiếm bán kính</h6>
+                        
+                        <div class="d-flex flex-row align-items-center ms-auto">
+                            
+                            <div class="d-flex flex-column justify-content-center" style="min-width: 150px;">
+                                <label class="text-uppercase fw-bold text-dark mb-0 d-flex align-items-center gap-1" style="font-size: 0.55rem; letter-spacing: 0.5px;"><i class="fa-solid fa-location-dot text-danger"></i> MỐC VỊ TRÍ</label>
+                                <select id="landmarkSelect" class="form-select form-select-sm border-0 bg-transparent px-0 fw-bold shadow-none text-dark py-0" style="font-size: 0.85rem; cursor: pointer; min-height: auto;">
+                                    <option value="">-- Chọn mốc vị trí --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="border-start border-secondary border-opacity-25 mx-2" style="height: 25px;"></div>
+                            
+                            <div class="d-flex flex-column justify-content-center" style="min-width: 120px;">
+                                <label class="text-uppercase fw-bold text-dark mb-0 d-flex align-items-center gap-1" style="font-size: 0.55rem; letter-spacing: 0.5px;"><i class="fa-solid fa-compass text-primary"></i> BÁN KÍNH</label>
+                                <select id="radiusSelect" class="form-select form-select-sm border-0 bg-transparent px-0 fw-bold shadow-none text-dark py-0" style="font-size: 0.85rem; cursor: pointer; min-height: auto;">
+                                    <option value="1">Trong vòng 1 km</option>
+                                    <option value="3" selected>Trong vòng 3 km</option>
+                                    <option value="5">Trong vòng 5 km</option>
+                                    <option value="10">Trong vòng 10 km</option>
+                                </select>
+                            </div>
+                            
+                            <div class="d-flex gap-1 ms-2 pe-1">
+                                <button id="btnSearchRadius" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 34px; height: 34px; transition: all 0.2s; padding: 0;" title="Tìm kiếm">
+                                    <i class="fa-solid fa-magnifying-glass" style="font-size: 0.85rem;"></i>
+                                </button>
+                                <button id="btnResetMap" class="btn btn-light border border-secondary border-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; transition: all 0.2s; background-color: #f8f9fa; padding: 0;" title="Khôi phục mặc định">
+                                    <i class="fa-solid fa-rotate-right text-secondary" style="font-size: 0.85rem;"></i>
+                                </button>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
 
-                <div class="map-body-mock bg-light border border-secondary border-opacity-25" style="border-radius: 1rem; overflow: hidden; position: relative;">
-                    <div id="real-map" style="width: 100%; height: 100%;"></div>
+                <div class="map-body-mock bg-light border border-secondary border-opacity-25 flex-grow-1" style="border-radius: 1rem; overflow: hidden; position: relative; min-height: 300px;">
+                    <div id="real-map" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"></div>
                 </div>
 
                 <!-- Bottom Mini Card (Dynamic updates via Javascript) -->
@@ -120,11 +129,9 @@
 
         // Add custom markers from model
         var rooms = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(r => new { r.Id, r.Title, r.Price, r.Rating, r.MainImageUrl, r.Latitude, r.Longitude })));
+        // Tải danh sách Landmarks và hiển thị lên bản đồ
+        var landmarkMarkers = [];
         
-        // HUTECH marker
-        var hutechIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#0d6efd; color:white; padding:5px 10px; border-radius:15px; font-weight:bold; font-size:12px; box-shadow:0 2px 5px rgba(0,0,0,0.3);'><i class='fa-solid fa-graduation-cap me-1'></i>HUTECH</div>", iconSize: [90, 30], iconAnchor: [45, 15] });
-        L.marker([10.800, 106.711], {icon: hutechIcon}).addTo(map).bindPopup("Đại học HUTECH");
-
         function showMiniCard(title, price, rating, img, id) {
             document.getElementById('miniCardTitle').innerText = title;
             document.getElementById('miniCardPrice').innerText = price + ' / tháng';
@@ -155,17 +162,28 @@
             if (landmarkMarker) map.removeLayer(landmarkMarker);
         }
 
-        // Tải danh sách Landmarks
         fetch('/api/LandmarkApi')
             .then(res => res.json())
             .then(data => {
                 if(data.success && data.data) {
                     var select = document.getElementById('landmarkSelect');
                     data.data.forEach(l => {
+                        // Thêm vào dropdown
                         var opt = document.createElement('option');
                         opt.value = l.latitude + ',' + l.longitude;
                         opt.text = l.name;
                         select.appendChild(opt);
+
+                        // Thêm marker lên bản đồ
+                        var shortName = l.name.replace("Đại học ", "").replace("Trường ", "");
+                        var icon = L.divIcon({ 
+                            className: 'custom-div-icon', 
+                            html: "<div style='background-color:#0d6efd; color:white; padding:5px 10px; border-radius:15px; font-weight:bold; font-size:11px; white-space:nowrap; box-shadow:0 2px 5px rgba(0,0,0,0.3);'><i class='fa-solid fa-graduation-cap me-1'></i>" + shortName + "</div>", 
+                            iconSize: null, // Let it size automatically based on content
+                            iconAnchor: [0, 15] // We'll adjust anchor approximately
+                        });
+                        var lMarker = L.marker([l.latitude, l.longitude], {icon: icon}).addTo(map).bindPopup(l.name);
+                        landmarkMarkers.push(lMarker);
                     });
                 }
             });

@@ -72,9 +72,17 @@ namespace SmartRoomFinder.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userName = User.Identity?.Name ?? "Chủ trọ";
 
-            await _roomService.CreateRoomAsync(model, userId ?? "", userName);
+            var roomId = await _roomService.CreateRoomAsync(model, userId ?? "", userName);
+            var user = await _context.Users.FindAsync(userId);
+            
+            if (user != null && user.PackageExpiresAt.HasValue && user.PackageExpiresAt.Value > DateTime.UtcNow)
+            {
+                TempData["SuccessMessage"] = "Đăng tin thành công! Tin của bạn đã được áp dụng gói VIP hiện tại của tài khoản.";
+                return RedirectToAction("Manage", "Room");
+            }
 
-            return RedirectToAction(nameof(Manage));
+            TempData["SuccessMessage"] = "Phòng đã được lưu nháp. Vui lòng mua gói dịch vụ để tin được hiển thị.";
+            return RedirectToAction("Index", "ServicePricing");
         }
 
         // Edit room (GET)

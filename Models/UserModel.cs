@@ -41,5 +41,53 @@ namespace SmartRoomFinder.Models
         public bool IsLocked { get; set; } = false;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        // -------------------------------------------------------
+        // KYC (eKYC) - Chỉ dùng cho Landlord
+        // -------------------------------------------------------
+
+        /// <summary>
+        /// Cờ đánh dấu tài khoản Chủ trọ đã được Admin xác thực CCCD.
+        /// Nếu false, Landlord không được phép tạo/đăng bài phòng trọ.
+        /// </summary>
+        public bool IsKycVerified { get; set; } = false;
+
+        /// <summary>Trạng thái hồ sơ KYC nhanh (cache lại từ KycProfileModel).</summary>
+        public KycStatus KycStatus { get; set; } = KycStatus.NotSubmitted;
+
+        // -------------------------------------------------------
+        // Cấu hình cổng thanh toán PayOS riêng của từng Chủ trọ
+        // Tiền cọc sẽ chạy thẳng vào tài khoản ngân hàng của Chủ trọ.
+        // -------------------------------------------------------
+
+        public string PayOsClientId { get; set; } = string.Empty;
+
+        public string PayOsApiKey { get; set; } = string.Empty;
+
+        public string PayOsChecksumKey { get; set; } = string.Empty;
+
+        /// <summary>Chủ trọ đã hoàn tất cấu hình cổng PayOS chưa.</summary>
+        public bool HasPayOsConfigured =>
+            !string.IsNullOrWhiteSpace(PayOsClientId) &&
+            !string.IsNullOrWhiteSpace(PayOsApiKey) &&
+            !string.IsNullOrWhiteSpace(PayOsChecksumKey);
+
+        // -------------------------------------------------------
+        // Cấu hình chuyển khoản ngân hàng qua QR code (VietQR)
+        // -------------------------------------------------------
+        public string? BankName { get; set; } = string.Empty;
+        public string? BankAccountNumber { get; set; } = string.Empty;
+        public string? BankAccountHolder { get; set; } = string.Empty;
+
+        public bool HasVietQrConfigured =>
+            !string.IsNullOrWhiteSpace(BankName) &&
+            !string.IsNullOrWhiteSpace(BankAccountNumber) &&
+            !string.IsNullOrWhiteSpace(BankAccountHolder);
+
+        // -------------------------------------------------------
+        // Gói Dịch vụ VIP của Tài khoản (Áp dụng cho tất cả phòng)
+        // -------------------------------------------------------
+        public RoomPackage CurrentPackage { get; set; } = RoomPackage.Default;
+        public DateTime? PackageExpiresAt { get; set; }
     }
 }

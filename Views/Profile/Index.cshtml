@@ -1,59 +1,181 @@
 @model SmartRoomFinder.Models.UserModel
-
 @{
     ViewData["Title"] = "Hồ Sơ Cá Nhân";
+    var kyc = ViewBag.KycProfile as SmartRoomFinder.Models.KycProfileModel;
 }
 
-<div class="row mt-4 mb-5">
-    <div class="col-lg-6 mx-auto">
-        <div class="glass-panel p-5 text-center position-relative overflow-hidden">
-            <!-- Glow background effect -->
-            <div class="position-absolute" style="background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(0,0,0,0) 70%); width: 300px; height: 300px; top: -50px; left: calc(50% - 150px); pointer-events: none; z-index: 0;"></div>
-
-            <div class="position-relative" style="z-index: 1;">
-                <img src="@Model.ProfileImageUrl" class="rounded-circle border border-secondary border-3 mb-4 shadow" style="width: 120px; height: 120px; object-fit: cover;" alt="Avatar" onerror="this.src='https://i.pravatar.cc/120?u=@Model.Email'">
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- CỘT BÊN TRÁI: AVATAR & TRẠNG THÁI XÁC THỰC -->
+        <div class="col-lg-4">
+            <div class="glass-panel text-center p-4 position-relative overflow-hidden h-100">
+                <!-- Glow background -->
+                <div class="position-absolute" style="background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(0,0,0,0) 70%); width: 250px; height: 250px; top: -50px; left: calc(50% - 125px); pointer-events: none;"></div>
                 
-                <h3 class="fw-bold mb-1">@Model.Name</h3>
-                <span class="badge bg-indigo px-3 py-2 fs-7 mb-4">Vai trò: @Model.Role.ToString().ToUpper()</span>
+                <div class="position-relative z-3">
+                    <!-- Avatar wrapper -->
+                    <div class="position-relative d-inline-block mb-3">
+                        <img src="@Model.ProfileImageUrl" 
+                             class="rounded-circle border border-primary border-3 shadow-sm" 
+                             style="width: 130px; height: 130px; object-fit: cover;" 
+                             alt="Avatar" 
+                             onerror="this.src='https://i.pravatar.cc/130?u=@Model.Email'">
+                        
+                        <a asp-action="Edit" class="position-absolute bottom-0 start-50 translate-middle-x mb-n3 bg-primary text-white rounded-pill px-3 py-1 shadow-sm text-decoration-none" style="font-size: 0.75rem; white-space: nowrap; z-index: 10;">
+                            <i class="fa-solid fa-camera me-1"></i> Đổi ảnh
+                        </a>
 
-                <div class="text-start mx-auto mt-2" style="max-width: 400px;">
-                    <div class="mb-3 d-flex align-items-center text-secondary">
-                        <i class="fa-solid fa-envelope text-info me-3 fs-5" style="width: 24px;"></i>
-                        <div>
-                            <span class="small text-muted d-block" style="font-size: 0.75rem;">Email tài khoản</span>
-                            <span class="text-white">@Model.Email</span>
-                        </div>
+                        @if (Model.IsKycVerified)
+                        {
+                            <span class="position-absolute top-0 end-0 bg-success text-white rounded-circle p-2 shadow d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border: 2px solid #fff;">
+                                <i class="fa-solid fa-check fs-6"></i>
+                            </span>
+                        }
                     </div>
 
-                    <div class="mb-3 d-flex align-items-center text-secondary">
-                        <i class="fa-solid fa-phone text-info me-3 fs-5" style="width: 24px;"></i>
-                        <div>
-                            <span class="small text-muted d-block" style="font-size: 0.75rem;">Số điện thoại</span>
-                            <span class="text-white">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Chưa cập nhật" : Model.PhoneNumber)</span>
+                    <h4 class="fw-bold mb-1">@Model.Name</h4>
+                    <span class="badge bg-primary px-3 py-2 rounded-pill fs-7 mb-3">
+                        <i class="fa-solid fa-user-shield me-1"></i> @(Model.Role == SmartRoomFinder.Models.UserRole.Landlord ? "Chủ Cho Thuê" : "Khách Tìm Phòng")
+                    </span>
+
+                    <hr class="opacity-20 my-3">
+
+                    <!-- Trạng thái KYC của chủ nhà -->
+                    @if (Model.Role == SmartRoomFinder.Models.UserRole.Landlord)
+                    {
+                        <div class="p-3 rounded-3 text-start mb-3" style="background: rgba(0, 0, 0, 0.03);">
+                            <label class="small text-secondary fw-bold d-block mb-1">Xác thực danh tính (eKYC)</label>
+                            @if (kyc == null || kyc.Status == SmartRoomFinder.Models.KycStatus.NotSubmitted)
+                            {
+                                <span class="text-danger small d-flex align-items-center gap-1 mb-2">
+                                    <i class="fa-solid fa-circle-exclamation"></i> Chưa xác thực tài khoản
+                                </span>
+                                <a asp-action="SubmitKyc" class="btn btn-danger btn-sm w-100 rounded-3">Bắt đầu xác thực</a>
+                            }
+                            else if (kyc.Status == SmartRoomFinder.Models.KycStatus.Pending)
+                            {
+                                <span class="text-warning small d-flex align-items-center gap-1 mb-2">
+                                    <i class="fa-solid fa-clock"></i> Đang chờ duyệt (AI match: @((int)((kyc.AiFaceMatchScore ?? 0) * 100))%)
+                                </span>
+                                <a asp-action="KycStatus" class="btn btn-outline-warning btn-sm w-100 rounded-3">Xem trạng thái</a>
+                            }
+                            else if (kyc.Status == SmartRoomFinder.Models.KycStatus.Approved)
+                            {
+                                <span class="text-success small d-flex align-items-center gap-1">
+                                    <i class="fa-solid fa-circle-check"></i> Đã xác thực thành công ✓
+                                </span>
+                            }
+                            else if (kyc.Status == SmartRoomFinder.Models.KycStatus.Rejected)
+                            {
+                                <span class="text-danger small d-flex align-items-center gap-1 mb-2">
+                                    <i class="fa-solid fa-circle-xmark"></i> Hồ sơ bị từ chối
+                                </span>
+                                <a asp-action="SubmitKyc" class="btn btn-danger btn-sm w-100 rounded-3">Nộp lại hồ sơ</a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT BÊN PHẢI: THÔNG TIN CHI TIẾT & LIÊN KẾT THANH TOÁN -->
+        <div class="col-lg-8">
+            <div class="glass-panel p-4 h-100">
+                
+                <h5 class="fw-bold mb-4"><i class="fa-solid fa-id-card text-primary me-2"></i>Thông Tin Tài Khoản</h5>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05);">
+                            <i class="fa-solid fa-envelope text-primary fs-4 me-3"></i>
+                            <div>
+                                <label class="small text-muted d-block" style="font-size: 0.75rem;">Email đăng nhập</label>
+                                <span class="fw-semibold">@Model.Email</span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="mb-3 d-flex align-items-center text-secondary">
-                        <i class="fa-solid fa-location-dot text-info me-3 fs-5" style="width: 24px;"></i>
-                        <div>
-                            <span class="small text-muted d-block" style="font-size: 0.75rem;">Địa điểm</span>
-                            <span class="text-white">@Model.Location</span>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05);">
+                            <i class="fa-solid fa-phone text-primary fs-4 me-3"></i>
+                            <div>
+                                <label class="small text-muted d-block" style="font-size: 0.75rem;">Số điện thoại</label>
+                                <span class="fw-semibold">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Chưa cập nhật" : Model.PhoneNumber)</span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="mb-4 d-flex align-items-center text-secondary">
-                        <i class="fa-regular fa-calendar-days text-info me-3 fs-5" style="width: 24px;"></i>
-                        <div>
-                            <span class="small text-muted d-block" style="font-size: 0.75rem;">Ngày tham gia</span>
-                            <span class="text-white">@Model.CreatedAt.ToString("dd/MM/yyyy")</span>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05);">
+                            <i class="fa-solid fa-location-dot text-primary fs-4 me-3"></i>
+                            <div>
+                                <label class="small text-muted d-block" style="font-size: 0.75rem;">Địa chỉ hoạt động</label>
+                                <span class="fw-semibold">@(string.IsNullOrEmpty(Model.Location) ? "Chưa cập nhật" : Model.Location)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center p-3 rounded-3" style="background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05);">
+                            <i class="fa-solid fa-calendar-days text-primary fs-4 me-3"></i>
+                            <div>
+                                <label class="small text-muted d-block" style="font-size: 0.75rem;">Ngày tham gia</label>
+                                <span class="fw-semibold">@Model.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex gap-3 justify-content-center mt-4">
-                    <a class="btn btn-premium-secondary px-4" asp-controller="Home" asp-action="Index">Về Trang Chủ</a>
-                    <a class="btn btn-premium px-4" asp-action="Edit"><i class="fa-solid fa-user-pen me-2"></i>Chỉnh sửa hồ sơ</a>
+                @if (Model.Role == SmartRoomFinder.Models.UserRole.Landlord)
+                {
+                    <h5 class="fw-bold mb-3 mt-2"><i class="fa-solid fa-wallet text-primary me-2"></i>Liên Kết Tài Khoản Nhận Tiền Cọc</h5>
+                    
+                    <div class="p-3 rounded-3 mb-4" style="background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.05);">
+                        @if (Model.HasPayOsConfigured)
+                        {
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-success mb-1">Đang kích hoạt</span>
+                                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-bolt text-warning me-1"></i>Cổng thanh toán tự động PayOS</h6>
+                                    <small class="text-muted">Các giao dịch đặt cọc từ khách thuê sẽ được tự động ghi nhận và duyệt phòng qua API PayOS.</small>
+                                </div>
+                                <a asp-action="PaymentSettings" class="btn btn-outline-secondary btn-sm rounded-3">Cấu hình lại</a>
+                            </div>
+                        }
+                        else if (Model.HasVietQrConfigured)
+                        {
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-success mb-1">Đang kích hoạt</span>
+                                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-qrcode text-primary me-1"></i>Chuyển khoản trực tiếp VietQR</h6>
+                                    <small class="text-muted">Nhận tiền qua: <strong>@Model.BankName</strong> - Số tài khoản: <strong>@Model.BankAccountNumber</strong> (@Model.BankAccountHolder)</small>
+                                </div>
+                                <a asp-action="PaymentSettings" class="btn btn-outline-secondary btn-sm rounded-3">Cấu hình lại</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-secondary mb-1">Chưa thiết lập</span>
+                                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-circle-exclamation text-danger me-1"></i>Chưa kết nối ngân hàng nhận tiền cọc</h6>
+                                    <small class="text-muted">Bạn cần cài đặt thông tin tài khoản để khách thuê có thể chuyển tiền đặt cọc phòng trực tiếp.</small>
+                                </div>
+                                @if (Model.IsKycVerified)
+                                {
+                                    <a asp-action="PaymentSettings" class="btn btn-primary btn-sm rounded-3 px-3">Cài đặt ngay</a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-secondary btn-sm rounded-3 px-3" disabled title="Cần hoàn tất KYC trước">Cài đặt ngay</button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="d-flex gap-2 justify-content-end mt-auto pt-3">
+                    <a class="btn btn-outline-secondary px-4 rounded-3" asp-controller="Home" asp-action="Index">Về Trang Chủ</a>
+                    <a class="btn btn-primary px-4 rounded-3 text-white" asp-action="Edit"><i class="fa-solid fa-user-pen me-2"></i>Chỉnh sửa thông tin</a>
                 </div>
+
             </div>
         </div>
     </div>

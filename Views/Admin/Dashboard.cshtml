@@ -252,6 +252,30 @@
         </div>
     </div>
     
+    <!-- Data Tools Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="admin-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h6 class="fw-bold m-0"><i class="fa-solid fa-cloud-arrow-down text-warning me-2"></i>Cào dữ liệu (Scrape) từ Chợ Tốt</h6>
+                        <span class="text-muted" style="font-size: 0.8rem;">Tự động lấy thông tin phòng trọ thật từ Chợ Tốt vào cơ sở dữ liệu.</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <select id="scrapeLimit" class="form-select" style="width: 200px;">
+                        <option value="10">Lấy 10 bài đăng</option>
+                        <option value="20">Lấy 20 bài đăng</option>
+                        <option value="50">Lấy 50 bài đăng</option>
+                    </select>
+                    <button class="btn btn-warning fw-bold text-white shadow-sm" onclick="startScraping()">
+                        <i class="fa-solid fa-play me-2"></i>Bắt đầu cào dữ liệu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Tables Row -->
     <div class="row g-4">
         <div class="col-md-8">
@@ -297,7 +321,7 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="admin-user-avatar" style="width: 28px; height: 28px; font-size: 0.7rem; background: #e0f2fe; color: #0284c7;">
-                                                @(room.PostedBy?.Substring(0, 1).ToUpper() ?? "U")
+                                                @(string.IsNullOrEmpty(room.PostedBy) ? "U" : room.PostedBy.Substring(0, 1).ToUpper())
                                             </div>
                                             <div>
                                                 <div class="fw-bold" style="font-size: 0.85rem;">@room.PostedBy</div>
@@ -664,6 +688,55 @@ else if (currentFilter == "Pending")
                 }
                 form.querySelector('.reason-input').value = reason;
                 return true;
+            }
+
+            function startScraping() {
+                const limit = document.getElementById('scrapeLimit').value;
+                
+                Swal.fire({
+                    title: 'Đang cào dữ liệu...',
+                    html: `Vui lòng chờ trong khi hệ thống lấy <b>${limit}</b> bài đăng từ Chợ Tốt.`,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                fetch('/Admin/ScrapeChotot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ limit: parseInt(limit) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Hoàn tất!',
+                            text: data.message,
+                            confirmButtonColor: '#10b981'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonColor: '#ef4444'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi kết nối',
+                        text: 'Không thể kết nối đến server: ' + error.message,
+                        confirmButtonColor: '#ef4444'
+                    });
+                });
             }
         </script>
     }

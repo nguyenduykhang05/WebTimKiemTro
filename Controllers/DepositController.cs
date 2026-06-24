@@ -5,10 +5,10 @@ using SmartRoomFinder.Models;
 using SmartRoomFinder.Services;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using PayOS;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SmartRoomFinder.Controllers
 {
@@ -17,13 +17,19 @@ namespace SmartRoomFinder.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IPaymentService _paymentService;
-        private readonly PayOSClient _payOS;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<SmartRoomFinder.Hubs.NotificationHub> _hubContext;
+        private readonly SmartRoomFinder.Services.IUserConnectionManager _connectionManager;
 
-        public DepositController(AppDbContext context, IPaymentService paymentService, PayOSClient payOS)
+        public DepositController(
+            AppDbContext context, 
+            IPaymentService paymentService,
+            Microsoft.AspNetCore.SignalR.IHubContext<SmartRoomFinder.Hubs.NotificationHub> hubContext,
+            SmartRoomFinder.Services.IUserConnectionManager connectionManager)
         {
             _context = context;
             _paymentService = paymentService;
-            _payOS = payOS;
+            _hubContext = hubContext;
+            _connectionManager = connectionManager;
         }
 
         [HttpGet]
@@ -36,14 +42,9 @@ namespace SmartRoomFinder.Controllers
                 .Include(d => d.Room)
                 .Include(d => d.Renter);
 
-            if (isLandlord)
-            {
-                query = query.Where(d => d.Room.OwnerId == userId);
-            }
-            else
-            {
-                query = query.Where(d => d.RenterId == userId);
-            }
+            query = isLandlord
+                ? query.Where(d => d.Room.OwnerId == userId)
+                : query.Where(d => d.RenterId == userId);
 
             var deposits = await query.OrderByDescending(d => d.CreatedAt).ToListAsync();
             return View("MyDeposits", deposits);
@@ -55,14 +56,27 @@ namespace SmartRoomFinder.Controllers
         {
             var room = await _context.Rooms.FindAsync(roomId);
             if (room == null || !room.IsActive || room.IsReserved)
-            {
                 return BadRequest("Phòng không tồn tại hoặc đã được đặt.");
-            }
-            double amount = room.DepositAmount > 0 ? room.DepositAmount : 500000;
 
+            // Kiểm tra chủ trọ đã cấu hình PayOS hoặc VietQR chưa
+            var landlord = await _context.Users.FindAsync(room.OwnerId);
+            if (landlord == null || (!landlord.HasPayOsConfigured && !landlord.HasVietQrConfigured))
+            {
+                TempData["ErrorMessage"] = "Chủ trọ chưa cấu hình phương thức nhận tiền đặt cọc. Vui lòng nhắn tin trực tiếp để trao đổi.";
+                return RedirectToAction("Detail", "Home", new { id = roomId });
+            }
+
+            // Kiểm tra chủ trọ đã xác thực KYC chưa
+            if (!landlord.IsKycVerified)
+            {
+                TempData["ErrorMessage"] = "Chủ trọ chưa xác thực danh tính. Hệ thống không hỗ trợ đặt cọc với chủ trọ chưa được xác thực để bảo vệ bạn.";
+                return RedirectToAction("Detail", "Home", new { id = roomId });
+            }
+
+            double amount = room.DepositAmount;
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
-            // Check if user already has a pending deposit for this room
+
+            // Tái sử dụng đơn cọc đang Pending nếu có
             var existing = await _context.Deposits
                 .FirstOrDefaultAsync(d => d.RoomId == roomId && d.RenterId == userId && d.Status == DepositStatus.Pending);
 
@@ -76,12 +90,44 @@ namespace SmartRoomFinder.Controllers
                 deposit = new DepositModel
                 {
                     RoomId = roomId,
-                    RenterId = userId,
+                    RenterId = userId!,
                     Amount = amount,
-                    ExpiresAt = DateTime.UtcNow.AddDays(3) // Will be reset when paid
+                    ExpiresAt = DateTime.UtcNow.AddDays(3)
                 };
                 _context.Deposits.Add(deposit);
                 await _context.SaveChangesAsync();
+            }
+
+            if (amount <= 0)
+            {
+                // Nếu đặt cọc 0đ -> Duyệt tự động thành công ngay
+                deposit.Status = DepositStatus.Paid;
+                deposit.PaidAt = DateTime.UtcNow;
+                deposit.TransactionId = "FREE-" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                room.IsReserved = true;
+
+                // Tạo thông báo
+                var freeNotif = new NotificationModel
+                {
+                    UserId = userId!,
+                    Title = "Giữ chỗ phòng thành công",
+                    Content = $"Bạn đã giữ chỗ thành công phòng '{room.Title}' (Đặt chỗ 0đ).",
+                    Type = "System",
+                    LinkUrl = "/Deposit",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Notifications.Add(freeNotif);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "🎉 Giữ chỗ phòng thành công! Phòng đã được đặt cho bạn.";
+                return RedirectToAction("Index");
+            }
+
+            if (landlord.HasVietQrConfigured && !landlord.HasPayOsConfigured)
+            {
+                // Chuyển hướng đến trang hiển thị mã VietQR chuyển khoản trực tiếp
+                return RedirectToAction("VietQrPayment", new { depositId = deposit.Id });
             }
 
             var checkoutUrl = await _paymentService.CreateDepositPaymentLinkAsync(deposit.Id, roomId, amount);
@@ -89,14 +135,23 @@ namespace SmartRoomFinder.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> PaymentCallback(string depositId, bool cancel = false, string? code = null, string? id = null, string? orderCode = null, string? status = null)
+        public async Task<IActionResult> PaymentCallback(
+            string depositId,
+            bool cancel = false,
+            string? code = null,
+            string? id = null,
+            string? orderCode = null,
+            string? status = null)
         {
-            var deposit = await _context.Deposits.Include(d => d.Room).FirstOrDefaultAsync(d => d.Id == depositId);
-            if (deposit == null) return NotFound("Không tìm thấy đơn cọc");
+            var deposit = await _context.Deposits
+                .Include(d => d.Room)
+                .FirstOrDefaultAsync(d => d.Id == depositId);
+
+            if (deposit == null) return NotFound("Không tìm thấy đơn cọc.");
 
             if (cancel || status == "CANCELLED")
             {
-                deposit.Status = DepositStatus.Refunded; // Mark as cancelled
+                deposit.Status = DepositStatus.Refunded;
                 await _context.SaveChangesAsync();
                 TempData["ErrorMessage"] = "Bạn đã hủy thanh toán cọc.";
                 return RedirectToAction("Detail", "Home", new { id = deposit.RoomId });
@@ -104,38 +159,187 @@ namespace SmartRoomFinder.Controllers
 
             if (status == "PAID")
             {
-                // Verify with PayOS
-                try 
+                try
                 {
-                    var paymentLinkInformation = await _payOS.PaymentRequests.GetAsync(long.Parse(deposit.OrderCode.ToString()));
-                    if (paymentLinkInformation.Status == PayOS.Models.V2.PaymentRequests.PaymentLinkStatus.Paid)
+                    // Xác minh với PayOS của Chủ trọ
+                    var landlord = await _context.Users.FindAsync(deposit.Room.OwnerId);
+                    bool verified = landlord != null && await _paymentService.VerifyPaymentAsync(deposit.Id, landlord.Id);
+
+                    if (verified && deposit.Status != DepositStatus.Paid)
                     {
-                        if (deposit.Status != DepositStatus.Paid)
+                        deposit.Status = DepositStatus.Paid;
+                        deposit.PaidAt = DateTime.UtcNow;
+                        deposit.ExpiresAt = DateTime.UtcNow.AddDays(3);
+                        deposit.TransactionId = id ?? string.Empty;
+
+                        if (deposit.Room != null)
+                            deposit.Room.IsReserved = true;
+
+                        // 1. Tạo thông báo cho Người thuê (Renter)
+                        var renterNotif = new NotificationModel
                         {
-                            deposit.Status = DepositStatus.Paid;
-                            deposit.PaidAt = DateTime.UtcNow;
-                            deposit.ExpiresAt = DateTime.UtcNow.AddDays(3); // 3 days to sign contract
-                            deposit.TransactionId = id ?? paymentLinkInformation.Id;
-                            
-                            if (deposit.Room != null)
+                            UserId = deposit.RenterId,
+                            Title = "Đặt cọc phòng thành công",
+                            Content = $"Bạn đã đặt cọc giữ chỗ thành công phòng trọ '{deposit.Room?.Title}'. Số tiền cọc: {deposit.Amount:N0} VNĐ. Phòng được giữ trong 3 ngày.",
+                            Type = "Payment",
+                            LinkUrl = "/Deposit",
+                            IsRead = false,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        _context.Notifications.Add(renterNotif);
+
+                        // 2. Tạo thông báo cho Chủ trọ (Landlord)
+                        if (landlord != null)
+                        {
+                            var landlordNotif = new NotificationModel
                             {
-                                deposit.Room.IsReserved = true;
-                            }
-                            await _context.SaveChangesAsync();
+                                UserId = landlord.Id,
+                                Title = "Có giao dịch đặt cọc mới",
+                                Content = $"Khách thuê đã đặt cọc thành công phòng '{deposit.Room?.Title}'. Số tiền cọc: {deposit.Amount:N0} VNĐ đã được chuyển trực tiếp vào tài khoản PayOS của bạn.",
+                                Type = "Payment",
+                                LinkUrl = "/Deposit",
+                                IsRead = false,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            _context.Notifications.Add(landlordNotif);
                         }
-                        TempData["SuccessMessage"] = "Thanh toán cọc thành công! Phòng đã được giữ cho bạn trong 3 ngày.";
-                        return RedirectToAction("Detail", "Home", new { id = deposit.RoomId });
+
+                        await _context.SaveChangesAsync();
+
+                        // Gửi SignalR thông báo thời gian thực
+                        try
+                        {
+                            var renterConns = _connectionManager.GetUserConnections(deposit.RenterId);
+                            if (renterConns != null && renterConns.Count > 0)
+                            {
+                                await _hubContext.Clients.Clients(renterConns).SendAsync("ReceiveNotification", $"Đặt cọc phòng '{deposit.Room?.Title}' thành công.");
+                            }
+
+                            if (landlord != null)
+                            {
+                                var landlordConns = _connectionManager.GetUserConnections(landlord.Id);
+                                if (landlordConns != null && landlordConns.Count > 0)
+                                {
+                                    await _hubContext.Clients.Clients(landlordConns).SendAsync("ReceiveNotification", $"Có giao dịch đặt cọc mới cho phòng '{deposit.Room?.Title}'.");
+                                }
+                            }
+                        }
+                        catch { /* Bỏ qua lỗi SignalR nếu có */ }
+
+                        TempData["SuccessMessage"] = "🎉 Thanh toán cọc thành công! Phòng đã được giữ cho bạn trong 3 ngày.";
                     }
                 }
-                catch(Exception ex)
+                catch (Exception)
                 {
-                    // Log error
-                    TempData["ErrorMessage"] = "Lỗi khi xác minh thanh toán.";
-                    return RedirectToAction("Detail", "Home", new { id = deposit.RoomId });
+                    TempData["ErrorMessage"] = "Lỗi khi xác minh thanh toán. Vui lòng liên hệ hỗ trợ.";
                 }
             }
 
             return RedirectToAction("Detail", "Home", new { id = deposit.RoomId });
+        }
+
+        // -------------------------------------------------------
+        // Trang hiển thị mã VietQR chuyển khoản trực tiếp
+        // -------------------------------------------------------
+        [HttpGet]
+        public async Task<IActionResult> VietQrPayment(string depositId)
+        {
+            var deposit = await _context.Deposits
+                .Include(d => d.Room)
+                .Include(d => d.Renter)
+                .FirstOrDefaultAsync(d => d.Id == depositId);
+
+            if (deposit == null) return NotFound("Không tìm thấy đơn cọc.");
+
+            var landlord = await _context.Users.FindAsync(deposit.Room.OwnerId);
+            if (landlord == null || !landlord.HasVietQrConfigured)
+            {
+                TempData["ErrorMessage"] = "Chủ trọ chưa cấu hình thông tin chuyển khoản VietQR.";
+                return RedirectToAction("Detail", "Home", new { id = deposit.RoomId });
+            }
+
+            ViewBag.Landlord = landlord;
+            return View(deposit);
+        }
+
+        // -------------------------------------------------------
+        // Xác nhận chuyển khoản VietQR (Simulation / Manual confirmation)
+        // -------------------------------------------------------
+        [HttpPost]
+        public async Task<IActionResult> ConfirmVietQrPayment(string depositId)
+        {
+            var deposit = await _context.Deposits
+                .Include(d => d.Room)
+                .FirstOrDefaultAsync(d => d.Id == depositId);
+
+            if (deposit == null) return NotFound("Không tìm thấy đơn cọc.");
+
+            if (deposit.Status != DepositStatus.Paid)
+            {
+                deposit.Status = DepositStatus.Paid;
+                deposit.PaidAt = DateTime.UtcNow;
+                deposit.ExpiresAt = DateTime.UtcNow.AddDays(3);
+                deposit.TransactionId = "VIETQR-" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                if (deposit.Room != null)
+                    deposit.Room.IsReserved = true;
+
+                // 1. Tạo thông báo cho Renter
+                var renterNotif = new NotificationModel
+                {
+                    UserId = deposit.RenterId,
+                    Title = "Đặt cọc phòng (VietQR) đang chờ xác nhận",
+                    Content = $"Bạn đã báo cáo chuyển khoản thành công phòng '{deposit.Room?.Title}'. Số tiền: {deposit.Amount:N0} VNĐ. Chủ nhà đang đối soát.",
+                    Type = "Payment",
+                    LinkUrl = "/Deposit",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Notifications.Add(renterNotif);
+
+                // 2. Tạo thông báo cho Landlord
+                var landlord = await _context.Users.FindAsync(deposit.Room.OwnerId);
+                if (landlord != null)
+                {
+                    var landlordNotif = new NotificationModel
+                    {
+                        UserId = landlord.Id,
+                        Title = "Khách thuê báo đã chuyển khoản cọc",
+                        Content = $"Khách thuê đã báo hoàn thành chuyển cọc phòng '{deposit.Room?.Title}'. Số tiền: {deposit.Amount:N0} VNĐ. Vui lòng check tài khoản ngân hàng của bạn.",
+                        Type = "Payment",
+                        LinkUrl = "/Deposit",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Notifications.Add(landlordNotif);
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Gửi Realtime SignalR
+                try
+                {
+                    var renterConns = _connectionManager.GetUserConnections(deposit.RenterId);
+                    if (renterConns != null && renterConns.Count > 0)
+                    {
+                        await _hubContext.Clients.Clients(renterConns).SendAsync("ReceiveNotification", $"Đã gửi thông báo đặt cọc phòng '{deposit.Room?.Title}' đến chủ nhà.");
+                    }
+
+                    if (landlord != null)
+                    {
+                        var landlordConns = _connectionManager.GetUserConnections(landlord.Id);
+                        if (landlordConns != null && landlordConns.Count > 0)
+                        {
+                            await _hubContext.Clients.Clients(landlordConns).SendAsync("ReceiveNotification", $"Khách đã chuyển cọc VietQR cho phòng '{deposit.Room?.Title}'.");
+                        }
+                    }
+                }
+                catch { }
+
+                TempData["SuccessMessage"] = "🎉 Bạn đã gửi thông báo chuyển khoản thành công! Vui lòng chờ chủ nhà kiểm tra số dư.";
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }

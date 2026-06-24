@@ -1,0 +1,98 @@
+@model SmartRoomFinder.Models.KycProfileModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Trạng Thái KYC";
+}
+
+<div class="container py-5" style="max-width: 680px;">
+    <h4 class="fw-bold mb-4"><i class="fa-solid fa-id-card me-2 text-primary"></i> Trạng Thái Xác Thực Danh Tính</h4>
+
+    @if (Model == null || Model.Status == SmartRoomFinder.Models.KycStatus.NotSubmitted)
+    {
+        <div class="card border-0 shadow rounded-4 p-4 text-center">
+            <div class="mb-3"><i class="fa-solid fa-circle-question fa-3x text-secondary"></i></div>
+            <h5 class="fw-bold">Bạn chưa nộp hồ sơ xác thực danh tính</h5>
+            <p class="text-muted small">Xác thực KYC là bắt buộc để đăng tin phòng trọ và nhận đặt cọc từ khách thuê.</p>
+            <a asp-action="SubmitKyc" class="btn btn-primary rounded-3 px-4 mt-2">
+                <i class="fa-solid fa-upload me-2"></i> Nộp hồ sơ ngay
+            </a>
+        </div>
+    }
+    else if (Model.Status == SmartRoomFinder.Models.KycStatus.Pending)
+    {
+        <div class="card border-0 shadow rounded-4 overflow-hidden">
+            <div class="card-header py-3 px-4" style="background: linear-gradient(135deg,#d97706,#f59e0b);">
+                <h5 class="text-white fw-bold mb-0"><i class="fa-solid fa-clock me-2"></i> Đang chờ Admin xét duyệt</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted">Hồ sơ của bạn đã được gửi thành công lúc <strong>@Model.SubmittedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</strong>. Admin sẽ xét duyệt trong vòng <strong>24 giờ</strong>.</p>
+                @if (Model.AiFaceMatchScore.HasValue)
+                {
+                    <div class="p-3 rounded-3 mb-3" style="background:rgba(37,99,235,0.08);">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-primary"><i class="fa-solid fa-robot me-1"></i> Kết quả AI Face Matching</span>
+                            <span class="badge @(Model.AiIsMatch == true ? "bg-success" : "bg-danger")">
+                                @(Model.AiIsMatch == true ? "✅ Khớp" : "❌ Không khớp")
+                            </span>
+                        </div>
+                        <div class="progress" style="height:8px;">
+                            <div class="progress-bar @(Model.AiFaceMatchScore >= 0.7 ? "bg-success" : "bg-danger")"
+                                 style="width: @((int)(Model.AiFaceMatchScore.Value * 100))%"></div>
+                        </div>
+                        <div class="small text-muted mt-1">Độ trùng khớp: <strong>@((int)(Model.AiFaceMatchScore.Value * 100))%</strong></div>
+                    </div>
+                }
+                <a asp-action="SubmitKyc" class="btn btn-outline-secondary btn-sm rounded-3">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Nộp lại hồ sơ
+                </a>
+            </div>
+        </div>
+    }
+    else if (Model.Status == SmartRoomFinder.Models.KycStatus.Approved)
+    {
+        <div class="card border-0 shadow rounded-4 overflow-hidden">
+            <div class="card-header py-3 px-4" style="background: linear-gradient(135deg,#065f46,#10b981);">
+                <h5 class="text-white fw-bold mb-0"><i class="fa-solid fa-circle-check me-2"></i> Đã Xác Thực Thành Công ✓</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted mb-3">Tài khoản của bạn đã được xác thực danh tính. Bạn có thể đăng tin phòng trọ và nhận đặt cọc từ người thuê.</p>
+                <table class="table table-borderless small">
+                    <tr><td class="fw-bold text-muted" style="width:180px">Số CCCD</td><td>@Model.IdentityCardNumber</td></tr>
+                    <tr><td class="fw-bold text-muted">Họ tên (OCR)</td><td>@(string.IsNullOrEmpty(Model.FullNameOnCard) ? "—" : Model.FullNameOnCard)</td></tr>
+                    <tr><td class="fw-bold text-muted">Ngày sinh (OCR)</td><td>@(string.IsNullOrEmpty(Model.DateOfBirthOnCard) ? "—" : Model.DateOfBirthOnCard)</td></tr>
+                    <tr><td class="fw-bold text-muted">Ngày duyệt</td><td>@Model.ReviewedAt?.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</td></tr>
+                    @if (Model.AiFaceMatchScore.HasValue)
+                    {
+                        <tr>
+                            <td class="fw-bold text-muted">Face Match AI</td>
+                            <td><span class="badge @(Model.AiIsMatch == true ? "bg-success" : "bg-warning text-dark")">@((int)(Model.AiFaceMatchScore.Value * 100))% — @(Model.AiIsMatch == true ? "Khớp" : "Cần kiểm tra")</span></td>
+                        </tr>
+                    }
+                </table>
+                <a asp-controller="Room" asp-action="Create" class="btn btn-success rounded-3 px-4">
+                    <i class="fa-solid fa-plus me-2"></i> Đăng tin phòng ngay
+                </a>
+                <a asp-action="PaymentSettings" class="btn btn-outline-primary rounded-3 px-4 ms-2">
+                    <i class="fa-solid fa-gear me-2"></i> Cài đặt thanh toán
+                </a>
+            </div>
+        </div>
+    }
+    else if (Model.Status == SmartRoomFinder.Models.KycStatus.Rejected)
+    {
+        <div class="card border-0 shadow rounded-4 overflow-hidden">
+            <div class="card-header py-3 px-4" style="background: linear-gradient(135deg,#7f1d1d,#dc2626);">
+                <h5 class="text-white fw-bold mb-0"><i class="fa-solid fa-circle-xmark me-2"></i> Hồ Sơ Bị Từ Chối</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-danger rounded-3 border-0 mb-3">
+                    <strong>Lý do từ chối:</strong> @Model.RejectReason
+                </div>
+                <p class="text-muted small">Vui lòng kiểm tra lại ảnh CCCD (rõ nét, đủ sáng, không bị che khuất) và ảnh selfie (khuôn mặt rõ ràng, cầm thẻ sát mặt), sau đó nộp lại hồ sơ.</p>
+                <a asp-action="SubmitKyc" class="btn btn-primary rounded-3 px-4">
+                    <i class="fa-solid fa-upload me-2"></i> Nộp lại hồ sơ
+                </a>
+            </div>
+        </div>
+    }
+</div>

@@ -40,8 +40,18 @@
             <a class="admin-nav-item @(action == "ManageUsers" ? "active" : "")" asp-controller="Admin" asp-action="ManageUsers">
                 <i class="fa-solid fa-user-group"></i> Người dùng
             </a>
-            <a class="admin-nav-item @(action == "ManageDeposits" ? "active" : "")" asp-controller="Admin" asp-action="ManageDeposits">
-                <i class="fa-solid fa-money-check-dollar"></i> Quản lý Đặt cọc
+            <a class="admin-nav-item @(action == "ServiceTransactions" ? "active" : "")" asp-controller="Admin" asp-action="ServiceTransactions">
+                <i class="fa-solid fa-money-check-dollar"></i> Giao dịch VIP
+            </a>
+            <a class="admin-nav-item @(action == "VerifyKyc" ? "active" : "")" asp-controller="Admin" asp-action="VerifyKyc">
+                <i class="fa-solid fa-id-card-clip"></i> Xét duyệt hồ sơ
+                @{
+                    var pendingKyc = ViewBag.PendingKycCount as int?;
+                }
+                @if (pendingKyc > 0)
+                {
+                    <span class="badge bg-danger ms-auto">@pendingKyc</span>
+                }
             </a>
             <a class="admin-nav-item @(action == "Reports" ? "active" : "")" asp-controller="Admin" asp-action="Reports">
                 <i class="fa-solid fa-chart-simple"></i> Báo cáo
@@ -97,6 +107,7 @@
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px; min-width: 200px;">
                         <li><a class="dropdown-item py-2" href="/"><i class="fa-solid fa-arrow-up-right-from-square me-2 text-muted"></i>Xem Website</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Profile" asp-action="Index"><i class="fa-solid fa-user me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item py-2 text-danger" asp-controller="Auth" asp-action="Logout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Đăng xuất</a></li>
                     </ul>

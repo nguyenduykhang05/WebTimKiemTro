@@ -22,7 +22,7 @@ namespace SmartRoomFinder.Controllers
             _context = context;
             _recommendationService = recommendationService;
         }
-
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> Index(string? search, string? location, RoomType? type, double? maxPrice, double? minArea, int? rating)
         {
             var query = _context.Rooms
@@ -71,7 +71,10 @@ namespace SmartRoomFinder.Controllers
                 }
             }
 
-            var rooms = await query.OrderByDescending(r => r.PostedAt).ToListAsync();
+            var rooms = await query
+                .OrderByDescending(r => r.Package)
+                .ThenByDescending(r => r.PostedAt)
+                .ToListAsync();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var favoriteRoomIds = new List<string>();
@@ -285,8 +288,77 @@ namespace SmartRoomFinder.Controllers
             return View(rooms);
         }
 
-        public IActionResult Blog()
+        public async Task<IActionResult> Blog()
         {
+            var articles = new List<dynamic>();
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.GetStringAsync("https://api.rss2json.com/v1/api.json?rss_url=https://vnexpress.net/rss/bat-dong-san.rss");
+                var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(response);
+                
+                if (result.GetProperty("status").GetString() == "ok")
+                {
+                    var items = result.GetProperty("items").EnumerateArray();
+                    foreach (var item in items)
+                    {
+                        var title = item.GetProperty("title").GetString();
+                        var link = item.GetProperty("link").GetString();
+                        var pubDate = item.GetProperty("pubDate").GetString();
+                        var thumbnailUrl = "";
+                        
+                        if (item.TryGetProperty("enclosure", out var enclosure) && enclosure.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            if (enclosure.TryGetProperty("link", out var linkProp))
+                            {
+                                thumbnailUrl = linkProp.GetString()?.Replace("&amp;", "&");
+                            }
+                        }
+                        
+                        var desc = item.GetProperty("description").GetString();
+                        
+                        // If enclosure is empty, try to extract from description
+                        if (string.IsNullOrEmpty(thumbnailUrl) && !string.IsNullOrEmpty(desc) && desc.Contains("<img "))
+                        {
+                            var match = System.Text.RegularExpressions.Regex.Match(desc, "<img.+?src=[\"'](.+?)[\"'].*?>", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                thumbnailUrl = match.Groups[1].Value.Replace("&amp;", "&");
+                            }
+                        }
+
+                        // Basic cleanup of description if it contains HTML
+                        if (!string.IsNullOrEmpty(desc))
+                        {
+                            var indexOfCloseTag = desc.LastIndexOf("</a>");
+                            if (indexOfCloseTag >= 0)
+                            {
+                                desc = desc.Substring(indexOfCloseTag + 4).Trim();
+                            }
+                            desc = System.Text.RegularExpressions.Regex.Replace(desc, "<.*?>", String.Empty);
+                        }
+
+                        if (string.IsNullOrEmpty(thumbnailUrl))
+                        {
+                            thumbnailUrl = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80";
+                        }
+
+                        articles.Add(new {
+                            Title = title,
+                            Link = link,
+                            PubDate = pubDate,
+                            ThumbnailUrl = thumbnailUrl,
+                            Description = desc
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching RSS: {ex.Message}");
+            }
+
+            ViewBag.Articles = articles.Take(6).ToList();
             return View();
         }
 

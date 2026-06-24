@@ -453,6 +453,7 @@
 
 @section Scripts {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body { background-color: #f4f4f4; }
         .gallery-thumb { transition: all 0.2s ease; cursor: pointer; }
@@ -565,25 +566,32 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize Leaflet Map
-            var lat = @Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            var lng = @Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            
-            var map = L.map('room-map').setView([lat, lng], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            // Initialize Leaflet Map safely
+            try {
+                if (typeof L !== 'undefined') {
+                    var lat = @Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var lng = @Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    
+                    var map = L.map('room-map').setView([lat, lng], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
 
-            var customIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: "<i class='fa-solid fa-location-dot text-danger' style='font-size: 32px; filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));'></i>",
-                iconSize: [30, 42],
-                iconAnchor: [15, 42]
-            });
+                    var customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: "<i class='fa-solid fa-location-dot text-danger' style='font-size: 32px; filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.3));'></i>",
+                        iconSize: [30, 42],
+                        iconAnchor: [15, 42]
+                    });
 
-            L.marker([lat, lng], {icon: customIcon}).addTo(map)
-                .bindPopup('<b class="text-primary">@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Title))</b><br><small class="text-secondary">@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Address))</small>')
-                .openPopup();
+                    L.marker([lat, lng], {icon: customIcon}).addTo(map)
+                        .bindPopup('<b class="text-primary">@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Title))</b><br><small class="text-secondary">@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.Address))</small>')
+                        .openPopup();
+                }
+            } catch (err) {
+                console.error("Map initialization failed:", err);
+            }
+
             // Load similar rooms
             fetch(`/api/recommendations/similar/@Model.Id?limit=6`)
                 .then(response => response.json())
@@ -654,5 +662,4 @@
                 });
         });
     </script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 }

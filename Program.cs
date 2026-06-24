@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+        options.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
         options.Events.OnRemoteFailure = context =>
         {
             context.Response.Redirect("/Auth/Login?error=access_denied");
@@ -47,6 +49,14 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAIAssistantService, AIAssistantService>();
+
+// Register KYC Services
+builder.Services.AddScoped<SmartRoomFinder.Services.Interfaces.IKycService, SmartRoomFinder.Services.Implementations.KycService>();
+builder.Services.AddScoped<SmartRoomFinder.Services.Interfaces.IEkycAiService, SmartRoomFinder.Services.Implementations.EkycAiService>();
+
+// Register Scraper Service
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<SmartRoomFinder.Services.Interfaces.IChototScraperService, SmartRoomFinder.Services.Implementations.ChototScraperService>();
 
 // Configure Session
 builder.Services.AddSession(options =>
@@ -104,6 +114,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<SmartRoomFinder.Middlewares.MaintenanceMiddleware>();
+app.UseMiddleware<SmartRoomFinder.Middlewares.KycRequiredMiddleware>();
 
 app.MapControllerRoute(
     name: "default",
